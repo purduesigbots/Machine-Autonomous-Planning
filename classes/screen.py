@@ -11,6 +11,7 @@ class Screen:
         self.height=size[1]
         self.field_width = self.height
         self.dark = dark
+        self.movement_settings_display = None
         self.lines = (50,50,50) if dark else (180,180,180)
         self.bg = (15,15,15) if dark else (235,235,235)
         self.tc = (70,70,70) if dark else (180,180,180)
@@ -93,7 +94,10 @@ class Screen:
         '''
         RINGS
         '''
-
+    def draw_settings(self):
+        if self.movement_settings_display == None:
+            return
+        self.movements[self.movement_settings_display].show_settings(self.window, (self.field_width/6,self.height/6))
 
     def draw_background(self):
         self.window.fill(self.bg)
@@ -113,6 +117,7 @@ class Screen:
             self.movements[m].draw_arrow(self.window)
         for m in range(l if l<12 else 12):
             self.movements[m+self.sidebar_start].draw_sidebar(self.window, (self.field_width, m*self.height/12))
+        self.draw_settings()
         pg.time.delay(dt)
         pg.display.update()
 
@@ -122,16 +127,20 @@ class Screen:
         self.sidebar_start = len(self.movements)-12 if self.sidebar_start > len(self.movements)-12 else self.sidebar_start
         
     def check_clicks(self, pos):
+        sidebar_clicks = []
         for m in self.movements:
             if m.is_clicked(pos):
-                print(m.name)
+                sidebar_clicks.append(int(m.name.split(" ")[1])-1)
+        clicked = max(sidebar_clicks) if len(sidebar_clicks)>0 else None
+        self.movement_settings_display = clicked if not self.movement_settings_display == clicked else None
+
     def add_move(self, m):
-        m.set_sidebar_text_color(self.tc)
+        m.set_sidebar_color(self.bg, self.tc)
         self.movements.append(m)
 
     def edit_move(self, new_move, i=None):
         i=len(self.movements)-1 if not i else i
-        new_move.set_sidebar_text_color(self.tc)
+        new_move.set_sidebar_color(self.bg, self.tc)
         self.movements[i]=new_move
 
     def remove_move(self, i=None):

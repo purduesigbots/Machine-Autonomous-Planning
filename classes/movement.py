@@ -47,20 +47,23 @@ class Arrow(pg.sprite.Sprite):
         pg.draw.line(w, self.color, self.start, self.endpoint, 3)
         pg.draw.polygon(w, self.color, self.coordinates)
 
-class Options(pg.sprite.Sprite):
-    def __init__(self, name, start, endpoint):
+class Settings(pg.sprite.Sprite):
+    def __init__(self, bg, tc, parent):
         super().__init__()
-        self.name = name
-        self.tc = (0,0,0)
-        self.start = start
-        self.endpoint = endpoint
-        self.width = 400
-        self.height = 50
-        self.original_image = pg.Surface((self.width,self.height), pg.SRCALPHA)
-        self.textfont = pg.font.SysFont("Comic Sans MS" , 30)
-        self.posfont = pg.font.SysFont("Comic Sans MS", 15)
-        self.clicked = False
-        self.set_text()
+        self.parent = parent
+        self.tc = tc
+        self.bg = bg
+        self.original_image = pg.Surface((400,400), pg.SRCALPHA)
+        pg.draw.rect(self.original_image, bg, (0,0,400,400))
+        pg.draw.rect(self.original_image, tc, (0,0,400,400), 5)
+        self.original_image.blit(parent.sidebar.displayText, (15,15))
+        self.original_image.blit(parent.sidebar.posi, (15,100))
+        self.original_image.blit(parent.sidebar.posf, (15,125))
+        self.displaying = True
+        self.image = self.original_image
+    
+    def show(self, w, pos):
+        w.blit(self.image, pos)
 
 class Sidebar(pg.sprite.Sprite):
     def __init__(self, name, start, endpoint, tc=(0,0,0)):
@@ -71,8 +74,8 @@ class Sidebar(pg.sprite.Sprite):
         self.width = 400
         self.height = 51
         self.original_image = pg.Surface((self.width,self.height), pg.SRCALPHA)
-        self.textfont = pg.font.SysFont("Comic Sans MS" , 30)
-        self.posfont = pg.font.SysFont("Comic Sans MS", 15)
+        self.textfont = pg.font.SysFont("arial" , 30)
+        self.posfont = pg.font.SysFont("arial", 15)
         self.clicked = False
         self.set_text()
         
@@ -91,23 +94,35 @@ class Sidebar(pg.sprite.Sprite):
         self.rect = self.image.get_rect(center=(pos[0]+self.width/2, pos[1]+self.height/2))
 
     def collides(self, point):
-        print(self.rect)
-        if self.rect.collidepoint(point):
-            self.clicked = True
+        try:
+            return True if self.rect.collidepoint(point) else False
+        except:
+            return False
         
 class Movement():
-    def __init__(self, name="Movement", move_type='drive', color=(50,200,50),prev=None, endpoint = (0,0), start = None):
+    def __init__(self, name="Movement", move_type='drive', color=(50,200,50), tc=(0,0,0), bg=(0,0,0), prev=None, endpoint = (0,0), start = None):
         self.name = name
-        self.type = type
+        self.type = move_type
         self.color = color
         self.prev = prev
+        self.tc = tc
+        self.bg = bg
         self.start = prev.endpoint if prev else (start if start else (0,600))
         self.angle_i = prev.angle_i if prev else 0
         self.endpoint = endpoint
-
+        self.options = {
+            "speed": 100,
+            "flags": {
+                "async": False,
+                "absolute": False,
+                "thru": False,
+                "reverse": False,    
+            }
+        }
         self.arrow = Arrow(self.start, self.endpoint, self.color)
         self.sidebar = Sidebar(self.name, self.start, self.endpoint)
-    
+        self.settings = Settings(self.bg, self.tc, self)
+
     def set_prev(self, p):
         self.prev = p
 
@@ -121,6 +136,7 @@ class Movement():
         self.endpoint = p
         self.arrow = Arrow(self.start, self.endpoint, self.color)
         self.sidebar = Sidebar(self.name, self.start, self.endpoint)
+        self.settings = Settings(self.bg, self.tc, self)
 
     def is_clicked(self, pos):
         if self.sidebar.collides(pos):
@@ -132,5 +148,14 @@ class Movement():
     def draw_sidebar(self, w, p):
         self.sidebar.draw(w, p)
 
-    def set_sidebar_text_color(self, tc):
+    def set_sidebar_color(self, bg, tc):
+        self.tc = tc
+        self.bg = bg
         self.sidebar = Sidebar(self.name, self.start, self.endpoint, tc)
+        self.settings = Settings(self.bg, self.tc, self)
+
+    def display_settings(self, v):
+        self.settings.displaying = v
+
+    def show_settings(self, w, pos):
+        self.settings.show(w, pos)
