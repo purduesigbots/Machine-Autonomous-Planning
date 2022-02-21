@@ -1,0 +1,136 @@
+import pygame as pg
+import math as m
+class Arrow(pg.sprite.Sprite):
+    def __init__(self,start,endpoint, color):
+        super().__init__()
+        self.original_image = pg.Surface((abs(endpoint[0]-start[0]),abs(endpoint[1]-start[1])), pg.SRCALPHA)
+        self.color = color
+        self.start = start
+        self.endpoint = endpoint
+        self.coordinates = [endpoint]
+        self.clicked = False
+        self.set_coordinates()
+
+    def set_coordinates(self):
+
+        '''
+        Not proud of this code but it works
+        
+        Calculates the coordinates of the 3 points that makeup the
+        the arrow based on which direction the movement goes in
+
+        Math can probably be simplified but it works
+        '''
+        
+        arr_t = 30 # Arrow's angle with the line 
+        arr_l = 20
+        dx = self.endpoint[0] - self.start[0]
+        dy = self.endpoint[1] - self.start[1]
+        arr_t*=m.pi/180 # degrees to radians
+        theta = m.pi/2 if not (dx==0 and dy >=0) else 3*m.pi/2
+        try:
+            theta = m.atan(dy/dx)
+        except:
+            a=1 # Do nothing
+            del a
+        
+        at1=theta+arr_t
+        at2=theta-arr_t
+        arrx = self.endpoint[0] - (1 if dx>0  else -1)*arr_l * m.cos(at1)
+        arry = self.endpoint[1] - (1 if dx>0  else -1)*arr_l * m.sin(at1)
+        arrx2 = self.endpoint[0] - (1 if dx>0 else -1)*arr_l * m.cos(at2)
+        arry2 = self.endpoint[1] - (1 if dx>0 else -1)*arr_l * m.sin(at2)
+        self.coordinates.append((arrx,arry))
+        self.coordinates.append((arrx2,arry2))
+
+    def draw(self, w):
+        pg.draw.line(w, self.color, self.start, self.endpoint, 3)
+        pg.draw.polygon(w, self.color, self.coordinates)
+
+class Options(pg.sprite.Sprite):
+    def __init__(self, name, start, endpoint):
+        super().__init__()
+        self.name = name
+        self.tc = (0,0,0)
+        self.start = start
+        self.endpoint = endpoint
+        self.width = 400
+        self.height = 50
+        self.original_image = pg.Surface((self.width,self.height), pg.SRCALPHA)
+        self.textfont = pg.font.SysFont("Comic Sans MS" , 30)
+        self.posfont = pg.font.SysFont("Comic Sans MS", 15)
+        self.clicked = False
+        self.set_text()
+
+class Sidebar(pg.sprite.Sprite):
+    def __init__(self, name, start, endpoint, tc=(0,0,0)):
+        self.name = name
+        self.tc = tc
+        self.start = start
+        self.endpoint = endpoint
+        self.width = 400
+        self.height = 51
+        self.original_image = pg.Surface((self.width,self.height), pg.SRCALPHA)
+        self.textfont = pg.font.SysFont("Comic Sans MS" , 30)
+        self.posfont = pg.font.SysFont("Comic Sans MS", 15)
+        self.clicked = False
+        self.set_text()
+        
+    def set_text(self):
+        self.displayText = self.textfont.render(self.name, False, self.tc)
+        self.posi = self.posfont.render(f'From: ({self.start[0]} , {self.start[1]})', False, self.tc)
+        self.posf = self.posfont.render(f'To: ({self.endpoint[0]} , {self.endpoint[1]})', False, self.tc)
+        self.original_image.blit(self.displayText,(10,5))
+        self.original_image.blit(self.posi, (220,5))
+        self.original_image.blit(self.posf, (240, 25))
+        pg.draw.line(self.original_image, self.tc, (0, self.height), (self.width, self.height),4)
+        self.image = self.original_image
+    
+    def draw(self, w, pos):
+        w.blit(self.image, pos)
+        self.rect = self.image.get_rect(center=(pos[0]+self.width/2, pos[1]+self.height/2))
+
+    def collides(self, point):
+        print(self.rect)
+        if self.rect.collidepoint(point):
+            self.clicked = True
+        
+class Movement():
+    def __init__(self, name="Movement", move_type='drive', color=(50,200,50),prev=None, endpoint = (0,0), start = None):
+        self.name = name
+        self.type = type
+        self.color = color
+        self.prev = prev
+        self.start = prev.endpoint if prev else (start if start else (0,600))
+        self.angle_i = prev.angle_i if prev else 0
+        self.endpoint = endpoint
+
+        self.arrow = Arrow(self.start, self.endpoint, self.color)
+        self.sidebar = Sidebar(self.name, self.start, self.endpoint)
+    
+    def set_prev(self, p):
+        self.prev = p
+
+    def set_type(self, t):
+        self.type = t
+
+    def set_color(self, c):
+        self.color = c
+
+    def set_endpoint(self,p):
+        self.endpoint = p
+        self.arrow = Arrow(self.start, self.endpoint, self.color)
+        self.sidebar = Sidebar(self.name, self.start, self.endpoint)
+
+    def is_clicked(self, pos):
+        if self.sidebar.collides(pos):
+            return True
+
+    def draw_arrow(self, w):
+        self.arrow.draw(w)
+
+    def draw_sidebar(self, w, p):
+        self.sidebar.draw(w, p)
+
+    def set_sidebar_text_color(self, tc):
+        self.sidebar = Sidebar(self.name, self.start, self.endpoint, tc)
