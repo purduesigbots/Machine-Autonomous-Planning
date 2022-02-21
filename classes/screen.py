@@ -5,10 +5,12 @@ class Screen:
     pg.init()
     def __init__(self, size=(1000,600), dark=False):
         self.movements = []
+        self.sidebar_start = 0
         self.window=pg.display.set_mode(size)
         self.width=size[0]
         self.height=size[1]
         self.field_width = self.height
+        self.dark = dark
         self.lines = (50,50,50) if dark else (180,180,180)
         self.bg = (15,15,15) if dark else (235,235,235)
         self.tc = (70,70,70) if dark else (180,180,180)
@@ -19,7 +21,7 @@ class Screen:
     '''
     def draw_elements(self):
         ring_radius = 6
-        goal_radius = 35
+        goal_radius = 25
 
         rings = [
             Ring((50,50)),
@@ -47,8 +49,31 @@ class Screen:
                 (246,190,0),
                 1
             ),
+            Goal(
+                (self.field_width/12 - goal_radius, self.height/4 -goal_radius),
+                goal_radius,
+                (25,25,220),
+                0
+            ),
+            Goal(
+                (self.field_width*11/12 - goal_radius, self.height*3/4 -goal_radius),
+                goal_radius,
+                (220,25,25),
+                0
+            ),
+            Goal(
+                (self.field_width/12 - goal_radius, self.height/4 -goal_radius),
+                goal_radius,
+                (25,25,220),
+                0
+            ),
+
         ]
 
+        platforms = [
+            Platform
+
+        ]
         for g in goals:
             self.window.blit(g.image, g.pos)
 
@@ -86,10 +111,16 @@ class Screen:
         l = len(self.movements)
         for m in range(l):
             self.movements[m].draw_arrow(self.window)
-            self.movements[m].draw_sidebar(self.window, (self.field_width, m*self.height/12))
+        for m in range(l if l<12 else 12):
+            self.movements[m+self.sidebar_start].draw_sidebar(self.window, (self.field_width, m*self.height/12))
         pg.time.delay(dt)
         pg.display.update()
 
+    def move_sidebar(self, direction):
+        self.sidebar_start+=direction
+        self.sidebar_start = 0 if self.sidebar_start < 0 else self.sidebar_start
+        self.sidebar_start = len(self.movements)-12 if self.sidebar_start > len(self.movements)-12 else self.sidebar_start
+        
     def check_clicks(self, pos):
         for m in self.movements:
             if m.is_clicked(pos):
@@ -106,3 +137,6 @@ class Screen:
     def remove_move(self, i=None):
         i=len(self.movements)-1 if not i else i
         del self.movements[i]
+
+    def reset(self):
+        self.__init__(size=(self.width,self.height),dark=self.dark)
