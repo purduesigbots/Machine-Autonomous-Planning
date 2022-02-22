@@ -3,8 +3,8 @@ from classes.movement import Movement
 import pygame as pg
 
 
-NEW_MOVEMENT = pg.K_m # Press M to make a new line
-CANCEL_MOVEMENT = pg.K_ESCAPE # Press escape to cancel a line placement
+NEW_MOVEMENT = pg.K_m  # Press M to make a new line
+CANCEL_MOVEMENT = pg.K_ESCAPE  # Press escape to cancel a line placement
 SIDEBAR_DOWN = pg.K_DOWN
 SIDEBAR_UP = pg.K_UP
 RESET = pg.K_r
@@ -15,27 +15,27 @@ use_dark_mode = False
 s = Screen(dark=use_dark_mode)
 prevclick = False
 
-
 while True:
     clicked = pg.mouse.get_pressed()[0]
     pos = pg.mouse.get_pos()
     for event in pg.event.get():
-        if event.type==pg.KEYDOWN:
+        if event.type == pg.KEYDOWN:
             if event.key == RESET:
                 s.reset()
             if not selected and event.key == NEW_MOVEMENT:
                 selected = Movement(
-                    name = f'Movement {len(s.movements)+1}',
-                    prev=(s.movements[len(s.movements)-1] if len(s.movements) else Movement(endpoint=pos))
-                    )
+                    name=f'Movement {len(s.movements)+1}',
+                    prev=(s.movements[len(s.movements)-1]
+                          if len(s.movements) else Movement(endpoint=pos))
+                )
                 selected.update(endpoint=pos)
                 s.add_move(selected)
             elif selected and event.key == NEW_MOVEMENT:
-                selected=None
+                selected = None
             elif selected and event.key == CANCEL_MOVEMENT:
-                selected=None
+                selected = None
                 s.remove_move()
-            
+
             if event.key == SIDEBAR_DOWN:
                 s.move_sidebar(1)
             elif event.key == SIDEBAR_UP:
@@ -49,6 +49,6 @@ while True:
                 if selected:
                     s.remove_move()
                 s.check_clicks(pos)
-            selected=None
+            selected = None
         prevclick = clicked
     s.update(5)
