@@ -1,10 +1,21 @@
+from shutil import move
+from classes.converter import Converter as c
+
 
 class Parser:
 
-    # TODO: write code to import an auton script
-    def import_script():
+    def __init__(self, movements):
+        self.movements = movements
+
+        # TODO: write code to import an auton script
+    def import_script(self):
         pass
 
     # Export path as cpp script
-    def export_script():
-        pass
+    def export_script(self):
+        f = open("output/script.cpp", "w")
+        f.write(
+            f'odom::reset({{{c.convert_x(self.movements[0].start[0])}, {c.convert_y(self.movements[0].start[1])}}});\n')
+        for m in self.movements:
+            f.write(m.toString())
+        f.close()
