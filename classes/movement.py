@@ -1,6 +1,6 @@
 import pygame as pg
 import math as m
-from classes.coordinates import *
+from classes.converter import Converter as c
 
 
 class Arrow(pg.sprite.Sprite):
@@ -94,9 +94,9 @@ class Sidebar(pg.sprite.Sprite):
     def set_text(self):
         self.displayText = self.textfont.render(self.name, False, self.tc)
         self.posi = self.posfont.render(
-            f'From: ({convert_x(self.start[0])} , {convert_y(self.start[1])})', False, self.tc)
+            f'From: ({c.convert_x(self.start[0])} , {c.convert_y(self.start[1])})', False, self.tc)
         self.posf = self.posfont.render(
-            f'To: ({convert_x(self.endpoint[0])} , {convert_y(self.endpoint[1])})', False, self.tc)
+            f'To: ({c.convert_x(self.endpoint[0])} , {c.convert_y(self.endpoint[1])})', False, self.tc)
         self.original_image.blit(self.displayText, (10, 5))
         self.original_image.blit(self.posi, (220, 5))
         self.original_image.blit(self.posf, (240, 25))
