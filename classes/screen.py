@@ -1,16 +1,18 @@
 from turtle import window_height
 import pygame as pg
 
+width = 1000
+height = 600
 
 class Screen:
     pg.init()
 
-    def __init__(self, size=(1000, 600), dark=False):
+    def __init__(self, dark=False):
         self.movements = []
         self.sidebar_start = 0
-        self.window = pg.display.set_mode(size)
-        self.width = size[0]
-        self.height = size[1]
+        self.window = pg.display.set_mode((width,height))
+        self.width = width
+        self.height = height
         self.field_width = self.height
         self.dark = dark
         self.movement_settings_display = None
