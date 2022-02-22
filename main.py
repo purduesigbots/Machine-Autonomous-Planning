@@ -10,7 +10,7 @@ SIDEBAR_UP = pg.K_UP
 RESET = pg.K_r
 
 selected = None
-use_dark_mode = True
+use_dark_mode = False
 
 s = Screen(dark=use_dark_mode)
 prevclick = False
@@ -28,7 +28,7 @@ while True:
                     name = f'Movement {len(s.movements)+1}',
                     prev=(s.movements[len(s.movements)-1] if len(s.movements) else Movement(endpoint=pos))
                     )
-                selected.set_endpoint(pos)
+                selected.update(endpoint=pos)
                 s.add_move(selected)
             elif selected and event.key == NEW_MOVEMENT:
                 selected=None
@@ -42,7 +42,7 @@ while True:
                 s.move_sidebar(-1)
         if selected:
             if pos[0] <= s.field_width:
-                selected.set_endpoint(pos)
+                selected.update(endpoint=pos, bg=s.bg, tc=s.tc)
                 s.edit_move(selected)
         if clicked and not prevclick:
             if pos[0] > s.field_width:

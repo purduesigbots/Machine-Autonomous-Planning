@@ -54,16 +54,22 @@ class Settings(pg.sprite.Sprite):
         self.tc = tc
         self.bg = bg
         self.original_image = pg.Surface((400,400), pg.SRCALPHA)
+        self.rect = pg.Rect(350,0,50,50)
         pg.draw.rect(self.original_image, bg, (0,0,400,400))
         pg.draw.rect(self.original_image, tc, (0,0,400,400), 5)
+        pg.draw.rect(self.original_image, tc, self.rect,5)
         self.original_image.blit(parent.sidebar.displayText, (15,15))
         self.original_image.blit(parent.sidebar.posi, (15,100))
         self.original_image.blit(parent.sidebar.posf, (15,125))
         self.displaying = True
         self.image = self.original_image
-    
+
     def show(self, w, pos):
-        w.blit(self.image, pos)
+        if self.displaying:
+            w.blit(self.image, pos)
+    
+    def close(self, pos):
+        return self.rect.collidepoint(pos)
 
 class Sidebar(pg.sprite.Sprite):
     def __init__(self, name, start, endpoint, tc=(0,0,0)):
@@ -123,14 +129,22 @@ class Movement():
         self.sidebar = Sidebar(self.name, self.start, self.endpoint)
         self.settings = Settings(self.bg, self.tc, self)
 
-    def set_prev(self, p):
-        self.prev = p
 
-    def set_type(self, t):
-        self.type = t
-
-    def set_color(self, c):
-        self.color = c
+    def update(self,  name=-333, move_type=-333, color=-333, tc=-333, bg=-333, prev=-333, endpoint=-333, start=-333):
+        self.name=self.name if name==-333 else name
+        self.type=self.type if move_type==-333 else move_type
+        self.color=self.color if color==-333 else color
+        self.tc=self.tc if tc==-333 else tc
+        self.bg=self.bg if bg==-333 else bg
+        self.prev=self.prev if prev==-333 else prev
+        self.start=self.start if start==-333 else start
+        self.endpoint=self.endpoint if endpoint==-333 else endpoint
+        self.update_classes()
+        
+    def update_classes(self):
+        self.arrow = Arrow(self.start, self.endpoint, self.color)
+        self.sidebar = Sidebar(self.name, self.start, self.endpoint,self.tc)
+        self.settings = Settings(self.bg, self.tc, self)
 
     def set_endpoint(self,p):
         self.endpoint = p
@@ -142,6 +156,10 @@ class Movement():
         if self.sidebar.collides(pos):
             return True
 
+    def toggle_settings(self, pos):
+        self.sidebar.displaying = self.sidebar.collides(pos) or self.settings.close(pos)
+        return self.sidebar.displaying
+        
     def draw_arrow(self, w):
         self.arrow.draw(w)
 
@@ -153,9 +171,6 @@ class Movement():
         self.bg = bg
         self.sidebar = Sidebar(self.name, self.start, self.endpoint, tc)
         self.settings = Settings(self.bg, self.tc, self)
-
-    def display_settings(self, v):
-        self.settings.displaying = v
 
     def show_settings(self, w, pos):
         self.settings.show(w, pos)

@@ -129,18 +129,23 @@ class Screen:
     def check_clicks(self, pos):
         sidebar_clicks = []
         for m in self.movements:
-            if m.is_clicked(pos):
+            if m.toggle_settings(pos):
                 sidebar_clicks.append(int(m.name.split(" ")[1])-1)
+            m.update(color=(50,200,50))
         clicked = max(sidebar_clicks) if len(sidebar_clicks)>0 else None
-        self.movement_settings_display = clicked if not self.movement_settings_display == clicked else None
+        if not clicked==None:
+            self.movement_settings_display = clicked if not self.movement_settings_display==clicked else None
+        if not self.movement_settings_display==None:
+            self.movements[self.movement_settings_display].update(color=(35,100,35))
+            self.movements[self.movement_settings_display].show_settings(self.window, (self.field_width/6, self.height/6))
 
     def add_move(self, m):
-        m.set_sidebar_color(self.bg, self.tc)
+        m.update(bg=self.bg, tc=self.tc)
         self.movements.append(m)
 
     def edit_move(self, new_move, i=None):
         i=len(self.movements)-1 if not i else i
-        new_move.set_sidebar_color(self.bg, self.tc)
+        new_move.update(bg=self.bg, tc=self.tc)
         self.movements[i]=new_move
 
     def remove_move(self, i=None):
