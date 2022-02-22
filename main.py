@@ -1,5 +1,6 @@
 from classes.screen import Screen
 from classes.movement import Movement
+from classes.parser import Parser
 import pygame as pg
 
 
@@ -8,6 +9,7 @@ CANCEL_MOVEMENT = pg.K_ESCAPE  # Press escape to cancel a line placement
 SIDEBAR_DOWN = pg.K_DOWN
 SIDEBAR_UP = pg.K_UP
 RESET = pg.K_r
+EXPORT = pg.K_e  # press e to export the script
 
 selected = None
 use_dark_mode = False
@@ -40,6 +42,10 @@ while True:
                 s.move_sidebar(1)
             elif event.key == SIDEBAR_UP:
                 s.move_sidebar(-1)
+
+            if event.key == EXPORT:
+                Parser(s.movements).export_script()
+
         if selected:
             if pos[0] <= s.field_width:
                 selected.update(endpoint=pos, bg=s.bg, tc=s.tc)
