@@ -130,10 +130,10 @@ class Movement():
         self.options = {
             "speed": 100,
             "flags": {
-                "async": False,
-                "absolute": False,
-                "thru": False,
-                "reverse": False,
+                "arms::ASYNC": False,
+                "arms::ABSOLUTE": False,
+                "arms::BACKWARDS": False,
+                "arms::THRU": False,
             }
         }
         self.arrow = Arrow(self.start, self.endpoint, self.color)
@@ -187,4 +187,5 @@ class Movement():
         self.settings.show(w, pos)
 
     def toString(self):
-        return f'move({{{c.convert_x(self.endpoint[0])} , {c.convert_y(self.endpoint[1])}}});\n'
+        joined_flags = " | ".join([f for f in self.options["flags"] if self.options["flags"][f]])
+        return f'move({{{c.convert_x(self.endpoint[0])} , {c.convert_y(self.endpoint[1])}}}, {self.options["speed"]}{", " + joined_flags if len(joined_flags) > 0 else ""});\n'
