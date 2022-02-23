@@ -55,7 +55,7 @@ class Slider(pg.sprite.Sprite):
     def __init__(self, size, center_line, color, position_percent):
         self.padding = size[0]/8
         self.color = color
-        self.position = position_percent # 0 to 100 representing the current length of the slider
+        self.position = position_percent / 100 * (size[0]-2*self.padding) # 0 to 100 representing the current length of the slider
         self.value = self.position / (size[0]-2*self.padding) * 100
         self.center_line = center_line
         self.width = size[0]
