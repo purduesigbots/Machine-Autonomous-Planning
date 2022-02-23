@@ -67,6 +67,10 @@ class Screen:
             if m.sidebar_clicked(pos):
                 m.set_arrow_color((35, 100, 35))
                 
+    def slider_drag(self, pos):
+        for m in self.visible_sidebars:
+            if m.sidebar.display_settings:
+                m.sidebar.settings.check_slider_slide(pos)
 
     def add_move(self, m):
         m.update(bg=self.bg, tc=self.tc)
@@ -79,7 +83,10 @@ class Screen:
 
     def remove_move(self, i=None):
         i = len(self.movements)-1 if not i else i
-        del self.movements[i]
+        try:
+            del self.movements[i]
+        except:
+            pass
 
     def reset(self):
         self.__init__(dark=self.dark)
