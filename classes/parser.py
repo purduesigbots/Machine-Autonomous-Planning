@@ -21,7 +21,7 @@ class Parser:
 
         # Reset odom coordinates to first arrow's start point
         f.write(
-            f'chassis::reset({{{c.convert_x(self.movements[0].start[0])}, {c.convert_y(self.movements[0].start[1])}}});\n')
+            f'odom::reset({{{c.convert_x(self.movements[0].start[0])}, {c.convert_y(self.movements[0].start[1])}}});\n')
         # Convert all movements into code
         for m in self.movements:
             f.write(m.toString())
