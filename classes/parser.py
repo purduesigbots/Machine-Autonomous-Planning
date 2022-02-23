@@ -1,4 +1,4 @@
-from shutil import move
+import os
 from classes.converter import Converter as c
 
 
@@ -13,6 +13,8 @@ class Parser:
 
     # Export path as cpp script
     def export_script(self):
+        if not os.path.exists("output"):
+            os.mkdir("output")
         f = open("output/script.cpp", "w")
         f.write(
             f'odom::reset({{{c.convert_x(self.movements[0].start[0])}, {c.convert_y(self.movements[0].start[1])}}});\n')
