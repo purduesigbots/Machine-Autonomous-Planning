@@ -21,12 +21,6 @@ class Screen:
         self.tc = (70, 70, 70) if dark else (180, 180, 180)
         self.update(50)
 
-    def draw_settings(self):
-        if self.movement_settings_display == None:
-            return
-        self.movements[self.movement_settings_display].show_settings(
-            self.window, (self.field_width/6, self.height/6))
-
     def draw_background(self):
         self.window.fill(self.bg)
         bg_image = pg.image.load('assets/field.png')
@@ -40,39 +34,39 @@ class Screen:
         pg.draw.line(self.window, self.lines, (self.height, 0),
                      (self.height, self.height), 3)
 
+    def draw_arrows(self):
+        for m in self.movements:
+            m.draw_arrow(self.window)
+
+    def draw_sidebar(self):
+        self.visible_sidebars = []
+        drawn_height = 0
+        for m in range(self.sidebar_start, len(self.movements)):
+            if drawn_height >= self.height:
+                break
+            self.visible_sidebars.append(self.movements[m])
+            drawn_height += self.movements[m].draw_sidebar(
+                self.window, (self.field_width, drawn_height)
+            )
+        
     def update(self, dt):
         self.draw_background()
-
-        l = len(self.movements)
-        for m in range(l):
-            self.movements[m].draw_arrow(self.window)
-        for m in range(l if l < 12 else 12):
-            self.movements[m+self.sidebar_start].draw_sidebar(
-                self.window, (self.field_width, m*self.height/12))
-        self.draw_settings()
+        self.draw_arrows()
+        self.draw_sidebar()
         pg.time.delay(dt)
         pg.display.update()
 
     def move_sidebar(self, direction):
-        self.sidebar_start += direction
-        self.sidebar_start = 0 if self.sidebar_start < 0 else self.sidebar_start
-        self.sidebar_start = len(
-            self.movements)-12 if self.sidebar_start > len(self.movements)-12 else self.sidebar_start
+        new_start = self.sidebar_start + direction
+        if new_start >= 0 and new_start < len(self.movements):
+            self.sidebar_start = new_start
 
-    def check_clicks(self, pos):
-        sidebar_clicks = []
-        for m in self.movements:
-            if m.toggle_settings(pos):
-                sidebar_clicks.append(int(m.name.split(" ")[1])-1)
-            m.update(color=(50, 200, 50))
-        clicked = max(sidebar_clicks) if len(sidebar_clicks) > 0 else None
-        if not clicked == None:
-            self.movement_settings_display = clicked if not self.movement_settings_display == clicked else None
-        if not self.movement_settings_display == None:
-            self.movements[self.movement_settings_display].update(
-                color=(35, 100, 35))
-            self.movements[self.movement_settings_display].show_settings(
-                self.window, (self.field_width/6, self.height/6))
+    def sidebar_clicks(self, pos):
+        for m in self.visible_sidebars:
+            m.set_arrow_color((50, 200, 50))
+            if m.sidebar_clicked(pos):
+                m.set_arrow_color((35, 100, 35))
+                
 
     def add_move(self, m):
         m.update(bg=self.bg, tc=self.tc)
@@ -88,4 +82,4 @@ class Screen:
         del self.movements[i]
 
     def reset(self):
-        self.__init__(size=(self.width, self.height), dark=self.dark)
+        self.__init__(dark=self.dark)

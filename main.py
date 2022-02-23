@@ -3,7 +3,9 @@ from classes.movement import Movement
 from classes.parser import Parser
 import pygame as pg
 
-
+'''
+KEYBINDS FOR CERTAIN ACTIONS
+'''
 NEW_MOVEMENT = pg.K_m  # Press M to make a new line
 CANCEL_MOVEMENT = pg.K_ESCAPE  # Press escape to cancel a line placement
 SIDEBAR_DOWN = pg.K_DOWN
@@ -18,8 +20,10 @@ s = Screen(dark=use_dark_mode)
 prevclick = False
 
 while True:
+    # Get mouse event informtion (clicked and position)
     clicked = pg.mouse.get_pressed()[0]
     pos = pg.mouse.get_pos()
+
     for event in pg.event.get():
         if event.type == pg.KEYDOWN:
             if event.key == RESET:
@@ -54,7 +58,7 @@ while True:
             if pos[0] > s.field_width:
                 if selected:
                     s.remove_move()
-                s.check_clicks(pos)
+                s.sidebar_clicks(pos)
             selected = None
         prevclick = clicked
     s.update(5)
