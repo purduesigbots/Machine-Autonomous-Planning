@@ -85,7 +85,10 @@ class Screen:
 
     def remove_move(self, i=None):
         i = len(self.movements)-1 if not i else i
-        del self.movements[i]
+        try:
+            del self.movements[i]
+        except:
+            pass
 
     def reset(self):
         self.__init__(size=(self.width, self.height), dark=self.dark)
