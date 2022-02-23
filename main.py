@@ -45,12 +45,15 @@ while True:
     '''
     Update screen with new mouse clicks
     '''
-    if clicked[0] and not prevmouse[0]:
-        if pos[0] > s.field_width:
-            if selected:
-                s.remove_move()
-            s.check_clicks(pos)
-        selected = None
+    if clicked[0]:
+        s.slider_drag(pos)
+        if not prevmouse[0]:
+            
+            if pos[0] > s.field_width:
+                if selected:
+                    s.remove_move()
+            s.sidebar_clicks(pos)
+            selected = None
     
     '''
     Get new keyboard clicks
@@ -70,7 +73,7 @@ while True:
         s.reset() 
 
     # Create a new movement if one does not exist. Uses 'NEW_MOVEMENT' or mouse press on field
-    if not selected and (new_click["NEW_MOVEMENT"] or (clicked[0] and pos[0] <= s.field_width)):
+    if not selected and (new_click["NEW_MOVEMENT"] or (clicked[0] and not prevmouse[0] and pos[0] <= s.field_width)):
         selected = Movement(
             name=f'Movement {len(s.movements)+1}', # Set movement name to 'Movement ' and which number movement it is
             prev=(

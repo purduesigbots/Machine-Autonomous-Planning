@@ -90,7 +90,6 @@ class Slider(pg.sprite.Sprite):
             else:
                 self.set_image(pos[0])
 
-            print("collides")
             return True
         return False
 
@@ -182,8 +181,6 @@ class Settings(pg.sprite.Sprite):
         self.image = self.original_image
         
     def update_settings(self):
-        print("updated")
-        print(self.speed_slider.value)
         self.parent.parent.options['speed'] = int(self.speed_slider.value)
         self.parent.parent.options['flags']['arms::ASYNC'] = self.async_button.selected
         self.parent.parent.options['flags']['arms::THRU'] = self.thru_button.selected
