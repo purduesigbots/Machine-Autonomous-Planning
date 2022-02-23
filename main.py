@@ -45,6 +45,9 @@ while True:
 
             if event.key == EXPORT:
                 Parser(s.movements).export_script()
+        elif event.type == pg.QUIT:
+            pg.quit()
+            exit()
 
         if selected:
             if pos[0] <= s.field_width:
