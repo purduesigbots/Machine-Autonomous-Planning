@@ -77,6 +77,8 @@ class Screen:
         self.movements.append(m)
 
     def edit_move(self, new_move, i=None):
+        if not len(self.movements):
+            return
         i = len(self.movements)-1 if not i else i
         new_move.update(bg=self.bg, tc=self.tc)
         self.movements[i] = new_move
