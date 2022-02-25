@@ -22,7 +22,7 @@ class Window:
         self.mainmenu = tk.Menu(self.root)
         self.mainmenu.add_command(label = "Import")  
         self.mainmenu.add_command(label = "Export", command=self.export_script)
-        self.mainmenu.add_command(label = "Clear")
+        self.mainmenu.add_command(label = "Clear", command= self.clear)
         self.mainmenu.add_command(label = "Exit", command= root.destroy)
 
         self.root.config(menu=self.mainmenu)
@@ -88,8 +88,16 @@ class Window:
         if not os.path.exists("output"):
             os.mkdir("output")
         f = open("output/script.cpp", "w")
-        f.write(
-            f'odom::reset({{{c.convert_x(self.movements[0].start[0])}, {c.convert_y(self.movements[0].start[1])}}});\n')
+        if(len(self.movements) > 0):
+            f.write(
+                f'odom::reset({{{c.convert_x(self.movements[0].start[0])}, {c.convert_y(self.movements[0].start[1])}}});\n')
         for m in self.movements:
             f.write(m.to_string())
         f.close()
+    
+    # clear the field
+    def clear(self):
+        for m in self.movements:
+            self.canvas.delete(m.line_ref)
+        self.movements = []
+        self.sidebar = []
