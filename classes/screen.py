@@ -5,6 +5,7 @@ import tkinter as tk
 import os
 
 # constants
+SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
 
 class Window:
@@ -20,12 +21,18 @@ class Window:
         self.sidebar = []
 
         self.mainmenu = tk.Menu(self.root)
-        self.mainmenu.add_command(label = "Import")  
+        self.mainmenu.add_command(label = "Import")
         self.mainmenu.add_command(label = "Export", command=self.export_script)
         self.mainmenu.add_command(label = "Clear", command= self.clear)
         self.mainmenu.add_command(label = "Exit", command= root.destroy)
 
         self.root.config(menu=self.mainmenu)
+
+        self.sidebar = tk.Frame(self.root, width=SCREEN_WIDTH-SCREEN_HEIGHT, height=SCREEN_HEIGHT)
+        self.sidebar.place(anchor=tk.NW, x=SCREEN_HEIGHT, y=0)
+
+        v = tk.Scrollbar(self.sidebar, orient="vertical")
+        v.pack(side=tk.RIGHT, fill=tk.Y)
 
         # bind keyboard input to key_handler callback
         self.root.bind("<Key>", self.key_handler)
