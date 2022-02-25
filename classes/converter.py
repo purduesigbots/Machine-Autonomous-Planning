@@ -1,11 +1,11 @@
-from classes.screen import height
-
+# constants
+SCREEN_HEIGHT = 600
 
 class Converter:
 
     def convert_x(x):
         # rescale x to inches
-        x /= height
+        x /= SCREEN_HEIGHT
         x *= 144
 
         # round to nearest  10th of an inch
@@ -13,7 +13,7 @@ class Converter:
 
     def convert_y(y):
         # rescale y to inches
-        y /= height
+        y /= SCREEN_HEIGHT
         y *= 144
 
         # move origin from top left to bottom left

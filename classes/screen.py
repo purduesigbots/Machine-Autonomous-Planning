@@ -1,6 +1,8 @@
 # import statements
 from classes.movement import Movement
+from classes.converter import Converter as c
 import tkinter as tk
+import os
 
 # constants
 SCREEN_HEIGHT = 600
@@ -15,6 +17,15 @@ class Window:
         self.canvas = canvas
         self.temp_line = None
         self.movements = []
+        self.sidebar = []
+
+        self.mainmenu = tk.Menu(self.root)
+        self.mainmenu.add_command(label = "Import")  
+        self.mainmenu.add_command(label = "Export", command=self.export_script)
+        self.mainmenu.add_command(label = "Clear")
+        self.mainmenu.add_command(label = "Exit", command= root.destroy)
+
+        self.root.config(menu=self.mainmenu)
 
         # bind keyboard input to key_handler callback
         self.root.bind("<Key>", self.key_handler)
@@ -72,4 +83,13 @@ class Window:
             self.temp_line = self.canvas.create_line(self.start_point[0], self.start_point[1], event.x, event.y, 
                                                fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
 
-
+    # Export path as cpp script
+    def export_script(self):
+        if not os.path.exists("output"):
+            os.mkdir("output")
+        f = open("output/script.cpp", "w")
+        f.write(
+            f'odom::reset({{{c.convert_x(self.movements[0].start[0])}, {c.convert_y(self.movements[0].start[1])}}});\n')
+        for m in self.movements:
+            f.write(m.to_string())
+        f.close()
