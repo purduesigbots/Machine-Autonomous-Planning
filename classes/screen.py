@@ -9,9 +9,11 @@ import os
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
 
+# Window class encapsulates main logic
 class Window:
 
     def __init__(self, root, canvas):
+        # initialize variables
         self.creating_movement = False
         self.start_point = (0, 0)
         self.end_point = (0, 0)
@@ -20,6 +22,7 @@ class Window:
         self.temp_line = None
         self.movements = []
 
+        # create top menu bar
         self.mainmenu = tk.Menu(self.root)
         self.mainmenu.add_command(label = "Import")
         self.mainmenu.add_command(label = "Export", command=self.export_script)
@@ -28,6 +31,7 @@ class Window:
 
         self.root.config(menu=self.mainmenu)
 
+        # create scrollable canvas for sidebar
         self.sidebar_canvas = tk.Canvas(root, width=SCREEN_WIDTH-SCREEN_HEIGHT, height=SCREEN_HEIGHT)
         v = ttk.Scrollbar(self.root, orient="vertical", command=self.sidebar_canvas.yview)
         self.sidebar = ttk.Frame(self.sidebar_canvas, width=SCREEN_WIDTH-SCREEN_HEIGHT, height=SCREEN_HEIGHT)
@@ -48,6 +52,7 @@ class Window:
         self.canvas.bind("<Motion>", self.motion_handler)
 
     def key_handler(self, event):
+        # if escape is hit, cancel the current movement
         if self.creating_movement and event.keysym == "Escape":
             self.creating_movement = False
             self.canvas.delete(self.temp_line)
@@ -112,10 +117,12 @@ class Window:
     
     # clear the field
     def clear(self):
+        # clear all movements
         for m in self.movements:
             self.canvas.delete(m.line_ref)
         self.movements = []
 
+        # clear out the sidebar canvas and recreate the scrollable frame
         self.sidebar_canvas.delete("all")
         self.sidebar = ttk.Frame(self.sidebar_canvas, width=SCREEN_WIDTH-SCREEN_HEIGHT, height=SCREEN_HEIGHT)
         self.sidebar.bind("<Configure>", lambda e: self.sidebar_canvas.configure(
