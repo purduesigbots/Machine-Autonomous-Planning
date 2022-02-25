@@ -42,18 +42,46 @@ while True:
     pos = pg.mouse.get_pos()
     keys = pg.key.get_pressed()
 
+    '''
+    EDIT THE ARROWS FROM SIDEBAR CRAP
+    '''
+
+    # Check if a sidebar is collected and the user clicked on the field
+    if clicked[0] and not prevmouse[0] and pos[0] < s.field_width and not s.selected_sidebar==None:
+
+        # If we have not selected yet, set our currently editing arrow to the sidebar's parent's arrow
+        if not selected:
+            selected = s.movements[s.selected_sidebar]
+            # update prevmouse
+            prevmouse = (clicked[0], clicked[1], clicked[2])
+
+        # If this is the second click, place the arrow
+        else:
+            # Say we aren't editing anything anymore
+            selected = None
+            # Update prevmouse
+            prevmouse = (clicked[0], clicked[1], clicked[2])
+            # Deselect the sidebar
+            s.selected_sidebar=None
+        # Go to next iteration of loop
+        continue
 
     '''
     Update screen with new mouse clicks
     '''
     if clicked[0]:
+        # Check slider drags with mouse position
         s.slider_drag(pos)
+
+        # Check if this is a new click
         if not prevmouse[0]:
-            
+            # Remove our move if we clicked outside of the field
             if pos[0] > s.field_width:
                 if selected:
                     s.remove_move()
-            s.sidebar_clicks(pos)
+                # Check for sidebar clicks
+                s.sidebar_clicks(pos)
+            # Place arrow / edit nothing
             selected = None
     
     '''
@@ -68,7 +96,6 @@ while True:
     '''
     Make keybinds do their functions
     '''
-
     # Reset screen
     if new_click["RESET"]:
         s.reset() 
@@ -91,7 +118,7 @@ while True:
     # Move selected movement's endpoint to current mouse position
     if selected and pos[0] <= s.field_width:
         selected.update(endpoint=pos, bg=s.bg, tc=s.tc) 
-        s.edit_move(selected) # Update movement with endpoint and screen's color theme
+        s.edit_move(selected, s.selected_sidebar if not s.selected_sidebar == None else None) # Update movement with endpoint and screen's color theme
 
 
     

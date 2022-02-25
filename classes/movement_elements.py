@@ -40,8 +40,7 @@ class Arrow(pg.sprite.Sprite):
         try:
             theta = m.atan(dy/dx)
         except:
-            a = 1  # Do nothing
-            del a
+            pass
 
         '''
         I cant really explain this math anymore but it pretty much decides
@@ -137,6 +136,9 @@ class Sidebar(pg.sprite.Sprite):
             # Add the setting's height to our drawn height
             toreturn += self.settings.height
         return toreturn
+
+    def close_settings(self):
+        self.display_settings = False
 
     def collides(self, point):
         try:
