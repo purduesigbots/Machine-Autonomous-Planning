@@ -108,6 +108,7 @@ while True:
     # Import the generated script
     if new_click["IMPORT"]:
         # Reset our screen
+        selected = None
         s.reset()
 
         # Get a list of movements from the script file
