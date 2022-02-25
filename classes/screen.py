@@ -1,7 +1,8 @@
 # import statements
-from classes.movement import Movement
+from classes.movement import Movement, SidebarGroup
 from classes.converter import Converter as c
 import tkinter as tk
+from tkinter import ttk
 import os
 
 # constants
@@ -18,7 +19,6 @@ class Window:
         self.canvas = canvas
         self.temp_line = None
         self.movements = []
-        self.sidebar = []
 
         self.mainmenu = tk.Menu(self.root)
         self.mainmenu.add_command(label = "Import")
@@ -28,18 +28,24 @@ class Window:
 
         self.root.config(menu=self.mainmenu)
 
-        self.sidebar = tk.Frame(self.root, width=SCREEN_WIDTH-SCREEN_HEIGHT, height=SCREEN_HEIGHT)
-        self.sidebar.place(anchor=tk.NW, x=SCREEN_HEIGHT, y=0)
+        self.sidebar_canvas = tk.Canvas(root, width=SCREEN_WIDTH-SCREEN_HEIGHT, height=SCREEN_HEIGHT)
+        v = ttk.Scrollbar(self.root, orient="vertical", command=self.sidebar_canvas.yview)
+        self.sidebar = ttk.Frame(self.sidebar_canvas, width=SCREEN_WIDTH-SCREEN_HEIGHT, height=SCREEN_HEIGHT)
+        self.sidebar.bind("<Configure>", lambda e: self.sidebar_canvas.configure(
+            scrollregion=self.sidebar_canvas.bbox("all")
+        ))
+        self.sidebar_canvas.create_window((0, 0), anchor=tk.NW, window=self.sidebar)
+        self.sidebar_canvas.configure(yscrollcommand=v.set)
 
-        v = tk.Scrollbar(self.sidebar, orient="vertical")
-        v.pack(side=tk.RIGHT, fill=tk.Y)
+        self.sidebar_canvas.place(anchor=tk.NW, x=SCREEN_HEIGHT, y=0)
+        v.pack(side="right", fill="y")
 
         # bind keyboard input to key_handler callback
         self.root.bind("<Key>", self.key_handler)
         # bind mouse button input to click_handler callback
-        self.root.bind("<Button>", self.click_handler)
+        self.canvas.bind("<Button>", self.click_handler)
         # bind mouse motion input to motion_handler callback
-        self.root.bind("<Motion>", self.motion_handler)
+        self.canvas.bind("<Motion>", self.motion_handler)
 
     def key_handler(self, event):
         if self.creating_movement and event.keysym == "Escape":
@@ -71,7 +77,9 @@ class Window:
                 line_ref = self.canvas.create_line(self.start_point[0], self.start_point[1], self.end_point[0], self.end_point[1], 
                                      fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
                 
-                m = Movement(self.start_point, self.end_point, line_ref)
+                m = Movement(self.start_point, self.end_point, line_ref, name="Movement {}".format(len(self.movements) + 1))
+                s = SidebarGroup(m, self.sidebar, self.canvas)
+
                 self.movements.append(m)
                 
                 self.start_point = self.end_point
@@ -107,4 +115,10 @@ class Window:
         for m in self.movements:
             self.canvas.delete(m.line_ref)
         self.movements = []
-        self.sidebar = []
+
+        self.sidebar_canvas.delete("all")
+        self.sidebar = ttk.Frame(self.sidebar_canvas, width=SCREEN_WIDTH-SCREEN_HEIGHT, height=SCREEN_HEIGHT)
+        self.sidebar.bind("<Configure>", lambda e: self.sidebar_canvas.configure(
+            scrollregion=self.sidebar_canvas.bbox("all")
+        ))
+        self.sidebar_canvas.create_window((0, 0), anchor=tk.NW, window=self.sidebar)
