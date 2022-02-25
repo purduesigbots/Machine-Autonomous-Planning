@@ -15,7 +15,8 @@ keybinds = {
     "SIDEBAR_DOWN": pg.K_DOWN, # Press down to move down on the sidebar view
     "SIDEBAR_UP": pg.K_UP, # Press up to move up on the sidebar view
     "RESET": pg.K_r, # Press R to clear the screen of movements
-    "EXPORT": pg.K_e  # press e to export the script
+    "EXPORT": pg.K_e,  # press e to export the script
+    "IMPORT": pg.K_i
 }
 selected = None
 use_dark_mode = False
@@ -104,6 +105,18 @@ while True:
     if new_click["EXPORT"]:
         Parser(s.movements).export_script()
     
+    # Import the generated script
+    if new_click["IMPORT"]:
+        # Reset our screen
+        s.reset()
+
+        # Get a list of movements from the script file
+        imported_moves = Parser().import_script()
+
+        # Add each movement to the screen
+        for m in imported_moves:
+            s.add_move(m)
+
     # Make the X button actually close the program
     for event in pg.event.get():
         if event.type == pg.QUIT:
