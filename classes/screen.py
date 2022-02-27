@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 import sys
 import os
+from math import fmod
 
 # constants
 SCREEN_WIDTH = 1000
@@ -147,9 +148,28 @@ class Window:
             x = event.x
             y = event.y
 
-            # TODO add snap to grid functionality
+            # snap to grid functionality
             if self.grid.get():
-                pass
+                # find grid square size in pizels
+                g = SCREEN_HEIGHT / 6 / 24 * GRID_SIZE
+                print("g", g)
+
+                # find position in interval and round to nearest grid point
+                x_mod = fmod(x, g)
+                print("x_mod", x_mod)
+                if x_mod >= g / 2:
+                    x = x - x_mod + g
+                else:
+                    x = x - x_mod
+                print("x", x)
+
+                y_mod = fmod(y, g)
+                print("y_mod", y_mod)
+                if y_mod >= g / 2:
+                    y = y - y_mod + g
+                else:
+                    y = y - y_mod
+                print("y", y)
 
             # if this is first click
             if not self.creating_movement:
