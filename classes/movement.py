@@ -2,6 +2,13 @@
 from classes.converter import Converter as c
 import tkinter as tk
 
+# theme constants
+DARK_MODE_BG = "black"
+DARK_MODE_FG = "white"
+LIGHT_MODE_BG = "white"
+LIGHT_MODE_FG = "black"
+SELECTED_COLOR = "red"
+
 # Movement class encapsulates code associated with movements
 class Movement:
 
@@ -53,6 +60,7 @@ class SidebarGroup:
         self.movement = movement
         self.owner = owner
         self.index = index
+        self.selected = False
         
         # create sub-frame
         self.frame = tk.Frame(self.owner.sidebar)
@@ -62,8 +70,8 @@ class SidebarGroup:
         self.txt.grid(row=0, column=0, columnspan=2)
 
         # add speed label
-        speed_txt = tk.Label(self.frame, text="Speed: ", font=("Arial", 12))
-        speed_txt.grid(row=0, column=2, columnspan=1)
+        self.speed_txt = tk.Label(self.frame, text="Speed: ", font=("Arial", 12))
+        self.speed_txt.grid(row=0, column=2, columnspan=1)
 
         # add speed slider
         self.slider = tk.Scale(self.frame, from_=0, to=100, orient="horizontal", command= lambda e: self.movement.set_speed(e))
@@ -72,48 +80,49 @@ class SidebarGroup:
 
         # create async flag variable and checkbutton
         self.async_flag = tk.BooleanVar()
-        async_checkbox = tk.Checkbutton(self.frame, text="ASYNC", variable=self.async_flag, onvalue=True, offvalue=False, command=self.set_flags)
-        async_checkbox.grid(row=1, column=0, columnspan=1)
+        self.async_checkbox = tk.Checkbutton(self.frame, text="ASYNC", variable=self.async_flag, onvalue=True, offvalue=False, command=self.set_flags)
+        self.async_checkbox.grid(row=1, column=0, columnspan=1)
 
         # if imported movement has async flag, set to true
         if "arms::ASYNC" in flags:
             self.async_flag.set(True)
-            async_checkbox.select()
+            self.async_checkbox.select()
 
         # create absolute flag variable and checkbutton
         self.absolute_flag = tk.BooleanVar()
-        absolute_checkbox = tk.Checkbutton(self.frame, text="ABSOLUTE", variable=self.absolute_flag, onvalue=True, offvalue=False, command=self.set_flags)
-        absolute_checkbox.grid(row=1, column=1, columnspan=1)
+        self.absolute_checkbox = tk.Checkbutton(self.frame, text="ABSOLUTE", variable=self.absolute_flag, onvalue=True, offvalue=False, command=self.set_flags)
+        self.absolute_checkbox.grid(row=1, column=1, columnspan=1)
 
         # if imported movement has absolute flag, set to true
         if "arms::ABSOLUTE" in flags:
             self.absolute_flag.set(True)
-            absolute_checkbox.select()
+            self.absolute_checkbox.select()
 
         # create backwards flag variable and checkbutton
         self.backwards_flag = tk.BooleanVar()
-        backwards_checkbox = tk.Checkbutton(self.frame, text="BACKWARDS", variable=self.backwards_flag, onvalue=True, offvalue=False, command=self.set_flags)
-        backwards_checkbox.grid(row=1, column=2, columnspan=1)
+        self.backwards_checkbox = tk.Checkbutton(self.frame, text="BACKWARDS", variable=self.backwards_flag, onvalue=True, offvalue=False, command=self.set_flags)
+        self.backwards_checkbox.grid(row=1, column=2, columnspan=1)
 
         # if imported movement has backwards flag, set to true
         if "arms::BACKWARDS" in flags:
             self.backwards_flag.set(True)
-            backwards_checkbox.select()
+            self.backwards_checkbox.select()
 
         # create thru flag variable and checkbutton
         self.thru_flag = tk.BooleanVar()
-        thru_checkbox = tk.Checkbutton(self.frame, text="THRU", variable=self.thru_flag, onvalue=True, offvalue=False, command=self.set_flags)
-        thru_checkbox.grid(row=1, column=3, columnspan=1)
+        self.thru_checkbox = tk.Checkbutton(self.frame, text="THRU", variable=self.thru_flag, onvalue=True, offvalue=False, command=self.set_flags)
+        self.thru_checkbox.grid(row=1, column=3, columnspan=1)
 
         # if imported movement has thru flag, set to true
         if "arms::THRU" in flags:
             self.thru_flag.set(True)
-            thru_checkbox.select()
+            self.thru_checkbox.select()
+
+        # adjust theme at start
+        self.adjust_theme()
 
         # pack frame
         self.frame.pack(side=tk.TOP)
-
-        self.selected = False
 
         # bind mouse input to click_handler callback
         self.txt.bind("<Button-1>", self.click_handler)
@@ -137,7 +146,7 @@ class SidebarGroup:
     # select sidebar and movement
     def select(self):
         self.selected = True
-        self.txt.configure(foreground="red")
+        self.txt.configure(foreground=SELECTED_COLOR)
 
         # toggle movement selected value and redraw movement
         self.movement.selected = True
@@ -147,9 +156,44 @@ class SidebarGroup:
     # deselect sidebar and movement
     def deselect(self):
         self.selected = False
-        self.txt.configure(foreground="black")
+        self.txt.configure(foreground=DARK_MODE_FG if self.owner.darkmode.get() else LIGHT_MODE_FG)
 
         # toggle movement selected value and redraw movement
         self.movement.selected = False
         self.movement.clear(self.owner.canvas)
         self.movement.draw(self.owner.canvas)
+    
+    # adjust dark mode vs light mode
+    def adjust_theme(self):
+        if self.owner.darkmode.get():
+            self.frame.configure(bg=DARK_MODE_BG)
+            self.txt.configure(bg=DARK_MODE_BG)
+            self.txt.configure(foreground=SELECTED_COLOR if self.selected else DARK_MODE_FG)
+            self.speed_txt.configure(bg=DARK_MODE_BG)
+            self.speed_txt.configure(foreground=DARK_MODE_FG)
+            self.slider.configure(bg=DARK_MODE_BG)
+            self.slider.configure(foreground=DARK_MODE_FG)
+            self.async_checkbox.configure(bg=DARK_MODE_BG)
+            self.async_checkbox.configure(foreground=DARK_MODE_FG)
+            self.absolute_checkbox.configure(bg=DARK_MODE_BG)
+            self.absolute_checkbox.configure(foreground=DARK_MODE_FG)
+            self.backwards_checkbox.configure(bg=DARK_MODE_BG)
+            self.backwards_checkbox.configure(foreground=DARK_MODE_FG)
+            self.thru_checkbox.configure(bg=DARK_MODE_BG)
+            self.thru_checkbox.configure(foreground=DARK_MODE_FG)
+        else:
+            self.frame.configure(bg=LIGHT_MODE_BG)
+            self.txt.configure(bg=LIGHT_MODE_BG)
+            self.txt.configure(foreground=SELECTED_COLOR if self.selected else LIGHT_MODE_FG)
+            self.speed_txt.configure(bg=LIGHT_MODE_BG)
+            self.speed_txt.configure(foreground=LIGHT_MODE_FG)
+            self.slider.configure(bg=LIGHT_MODE_BG)
+            self.slider.configure(foreground=LIGHT_MODE_FG)
+            self.async_checkbox.configure(bg=LIGHT_MODE_BG)
+            self.async_checkbox.configure(foreground=LIGHT_MODE_FG)
+            self.absolute_checkbox.configure(bg=LIGHT_MODE_BG)
+            self.absolute_checkbox.configure(foreground=LIGHT_MODE_FG)
+            self.backwards_checkbox.configure(bg=LIGHT_MODE_BG)
+            self.backwards_checkbox.configure(foreground=LIGHT_MODE_FG)
+            self.thru_checkbox.configure(bg=LIGHT_MODE_BG)
+            self.thru_checkbox.configure(foreground=LIGHT_MODE_FG)

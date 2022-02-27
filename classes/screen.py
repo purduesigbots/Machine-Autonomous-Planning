@@ -1,4 +1,5 @@
 # import statements
+from turtle import bgcolor
 from classes.movement import Movement, SidebarGroup
 from classes.converter import Converter as c
 import tkinter as tk
@@ -24,19 +25,10 @@ class Window:
         self.movements = []
         self.sidebar_groups = []
 
-        # create top menu bar
-        self.mainmenu = tk.Menu(self.root)
-        self.mainmenu.add_command(label = "Import", command=self.import_script)
-        self.mainmenu.add_command(label = "Export", command=self.export_script)
-        self.mainmenu.add_command(label = "Clear", command= self.clear)
-        self.mainmenu.add_command(label = "Exit", command= root.destroy)
-
-        self.root.config(menu=self.mainmenu)
-
         # create scrollable canvas for sidebar
         self.sidebar_canvas = tk.Canvas(root, width=SCREEN_WIDTH-SCREEN_HEIGHT, height=SCREEN_HEIGHT)
         v = ttk.Scrollbar(self.root, orient="vertical", command=self.sidebar_canvas.yview)
-        self.sidebar = ttk.Frame(self.sidebar_canvas, width=SCREEN_WIDTH-SCREEN_HEIGHT, height=SCREEN_HEIGHT)
+        self.sidebar = tk.Frame(self.sidebar_canvas, width=SCREEN_WIDTH-SCREEN_HEIGHT, height=SCREEN_HEIGHT)
         self.sidebar.bind("<Configure>", lambda e: self.sidebar_canvas.configure(
             scrollregion=self.sidebar_canvas.bbox("all")
         ))
@@ -49,6 +41,38 @@ class Window:
         # create variable to store which sidebar is selected at a time
         self.sidebar_selection_index = -1
 
+        # create top menu bar
+        mainmenu = tk.Menu(self.root, tearoff=False)
+
+        # create file submenu
+        file = tk.Menu(self.root, tearoff=False)
+
+        # add import, export, clear
+        file.add_command(label = "Import", command=self.import_script)
+        file.add_command(label = "Export", command=self.export_script)
+        file.add_command(label = "Clear", command= self.clear)
+
+        # attach file submenu to main menu bar
+        mainmenu.add_cascade(label = "File", menu=file)
+
+        # create settings submenu
+        settings = tk.Menu(self.root, tearoff=False)
+
+        # add dark mode checkbutton
+        self.darkmode = tk.BooleanVar()
+        self.darkmode.set(True)
+        settings.add_checkbutton(label="Dark Mode", onvalue=True, offvalue=False, variable=self.darkmode, state=tk.ACTIVE, command=self.set_darkmode)
+        self.set_darkmode()
+        
+        # attach settings submenu to main menu
+        mainmenu.add_cascade(label = "Settings", menu=settings)
+
+        # add exit to main menu
+        mainmenu.add_command(label = "Exit", command= root.destroy)
+
+        # attach main menu bar to root
+        self.root.config(menu=mainmenu)
+
         # bind keyboard input to key_handler callback
         self.root.bind("<Key>", self.key_handler)
         # bind mouse button input to click_handler callback
@@ -56,6 +80,21 @@ class Window:
         # bind mouse motion input to motion_handler callback
         self.canvas.bind("<Motion>", self.motion_handler)
     
+    # configure screen to use darkmode
+    def set_darkmode(self):
+        if self.darkmode.get():
+            self.sidebar.configure(bg="black")
+            self.sidebar_canvas.configure(bg="black")
+
+            for s in self.sidebar_groups:
+                s.adjust_theme()
+        else:
+            self.sidebar.configure(bg="white")
+            self.sidebar_canvas.configure(bg="white")
+
+            for s in self.sidebar_groups:
+                s.adjust_theme()
+
     # switch which sidebar group is selected
     def switch_selection(self, new_index):
         # if the current selected index exists, then deselect it
