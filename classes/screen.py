@@ -22,6 +22,7 @@ class Window:
         self.canvas = canvas
         self.temp_line = None
         self.movements = []
+        self.sidebar_groups = []
 
         # create top menu bar
         self.mainmenu = tk.Menu(self.root)
@@ -45,12 +46,28 @@ class Window:
         self.sidebar_canvas.place(anchor=tk.NW, x=SCREEN_HEIGHT, y=0)
         v.pack(side="right", fill="y")
 
+        # create variable to store which sidebar is selected at a time
+        self.sidebar_selection_index = -1
+
         # bind keyboard input to key_handler callback
         self.root.bind("<Key>", self.key_handler)
         # bind mouse button input to click_handler callback
         self.canvas.bind("<Button>", self.click_handler)
         # bind mouse motion input to motion_handler callback
         self.canvas.bind("<Motion>", self.motion_handler)
+    
+    # switch which sidebar group is selected
+    def switch_selection(self, new_index):
+        # if the current selected index exists, then deselect it
+        if self.sidebar_selection_index != -1:
+            self.sidebar_groups[self.sidebar_selection_index].deselect()
+        
+        # if the new index exists, then select it
+        if new_index != -1:
+            self.sidebar_groups[new_index].select()
+        
+        # replace the selected index
+        self.sidebar_selection_index = new_index
 
     def key_handler(self, event):
         # if escape is hit, cancel the current movement
@@ -84,9 +101,10 @@ class Window:
                                      fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
                 
                 m = Movement(self.start_point, self.end_point, line_ref, name="Movement {}".format(len(self.movements) + 1))
-                s = SidebarGroup(m, self.sidebar, self.canvas)
+                s = SidebarGroup(m, self, len(self.sidebar_groups))
 
                 self.movements.append(m)
+                self.sidebar_groups.append(s)
                 
                 self.start_point = self.end_point
         # if mouse click is not on field
@@ -130,6 +148,9 @@ class Window:
             scrollregion=self.sidebar_canvas.bbox("all")
         ))
         self.sidebar_canvas.create_window((0, 0), anchor=tk.NW, window=self.sidebar)
+
+        # clear sidebar_groups vector
+        self.sidebar_groups.clear()
 
     def import_script(self):
         self.clear()
@@ -216,6 +237,9 @@ class Window:
                 
                 # Add the movement to our list of moves
                 self.movements.append(themove)
+
+                # Add the sidebar group to the list
+                self.sidebar_groups.append(s)
 
                 # Reset start to endpoint to chain movements
                 start = endpoint

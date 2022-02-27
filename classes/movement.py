@@ -28,7 +28,7 @@ class Movement:
 
     # draw arrow on canvas
     def draw(self, canvas):
-        line_fill = "lime" if self.selected else "green"
+        line_fill = "green" if self.selected else "lime"
         self.line_ref = canvas.create_line(self.start[0], self.start[1], self.end[0], self.end[1], 
                                      fill=line_fill, width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
     
@@ -48,14 +48,14 @@ class Movement:
 # SidebarGroup class encapsulates sidebar widget groups
 class SidebarGroup:
 
-    def __init__(self, movement, sidebar, canvas, speed=100, flags=""):
+    def __init__(self, movement, owner, index, speed=100, flags=""):
         # initialize variables
         self.movement = movement
-        self.sidebar = sidebar
-        self.canvas = canvas
+        self.owner = owner
+        self.index = index
         
         # create sub-frame
-        self.frame = tk.Frame(self.sidebar)
+        self.frame = tk.Frame(self.owner.sidebar)
 
         # add movement name label
         self.txt = tk.Label(self.frame, text=self.movement.name, font=("Arial", 18))
@@ -121,17 +121,11 @@ class SidebarGroup:
     def click_handler(self, event):
         # if LMB click
         if event.num == 1:
-            # toggle selected value and set movement name label color
-            self.selected = not self.selected
+            # if selected, then deselect
             if self.selected:
-                self.txt.configure(foreground="red")
+                self.owner.switch_selection(-1)
             else:
-                self.txt.configure(foreground="black")
-            
-            # toggle movement selected value and redraw movement
-            self.movement.selected = not self.selected
-            self.movement.clear(self.canvas)
-            self.movement.draw(self.canvas)
+                self.owner.switch_selection(self.index)
     
     # set movement flags to stored flag variable values
     def set_flags(self):
@@ -139,3 +133,23 @@ class SidebarGroup:
         self.movement.options["flags"]["arms::ABSOLUTE"] = self.absolute_flag.get()
         self.movement.options["flags"]["arms::BACKWARDS"] = self.backwards_flag.get()
         self.movement.options["flags"]["arms::THRU"] = self.thru_flag.get()
+    
+    # select sidebar and movement
+    def select(self):
+        self.selected = True
+        self.txt.configure(foreground="red")
+
+        # toggle movement selected value and redraw movement
+        self.movement.selected = True
+        self.movement.clear(self.owner.canvas)
+        self.movement.draw(self.owner.canvas)
+
+    # deselect sidebar and movement
+    def deselect(self):
+        self.selected = False
+        self.txt.configure(foreground="black")
+
+        # toggle movement selected value and redraw movement
+        self.movement.selected = False
+        self.movement.clear(self.owner.canvas)
+        self.movement.draw(self.owner.canvas)
