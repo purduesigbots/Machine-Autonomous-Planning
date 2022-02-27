@@ -48,7 +48,7 @@ class Movement:
 # SidebarGroup class encapsulates sidebar widget groups
 class SidebarGroup:
 
-    def __init__(self, movement, sidebar, canvas):
+    def __init__(self, movement, sidebar, canvas, speed=100, flags=""):
         # initialize variables
         self.movement = movement
         self.sidebar = sidebar
@@ -67,24 +67,48 @@ class SidebarGroup:
 
         # add speed slider
         self.slider = tk.Scale(self.frame, from_=0, to=100, orient="horizontal", command= lambda e: self.movement.set_speed(e))
-        self.slider.set(100)
+        self.slider.set(speed)
         self.slider.grid(row=0, column=3, columnspan=2)
 
+        # create async flag variable and checkbutton
         self.async_flag = tk.BooleanVar()
         async_checkbox = tk.Checkbutton(self.frame, text="ASYNC", variable=self.async_flag, onvalue=True, offvalue=False, command=self.set_flags)
         async_checkbox.grid(row=1, column=0, columnspan=1)
 
+        # if imported movement has async flag, set to true
+        if "arms::ASYNC" in flags:
+            self.async_flag.set(True)
+            async_checkbox.select()
+
+        # create absolute flag variable and checkbutton
         self.absolute_flag = tk.BooleanVar()
         absolute_checkbox = tk.Checkbutton(self.frame, text="ABSOLUTE", variable=self.absolute_flag, onvalue=True, offvalue=False, command=self.set_flags)
         absolute_checkbox.grid(row=1, column=1, columnspan=1)
 
+        # if imported movement has absolute flag, set to true
+        if "arms::ABSOLUTE" in flags:
+            self.absolute_flag.set(True)
+            absolute_checkbox.select()
+
+        # create backwards flag variable and checkbutton
         self.backwards_flag = tk.BooleanVar()
         backwards_checkbox = tk.Checkbutton(self.frame, text="BACKWARDS", variable=self.backwards_flag, onvalue=True, offvalue=False, command=self.set_flags)
         backwards_checkbox.grid(row=1, column=2, columnspan=1)
 
+        # if imported movement has backwards flag, set to true
+        if "arms::BACKWARDS" in flags:
+            self.backwards_flag.set(True)
+            backwards_checkbox.select()
+
+        # create thru flag variable and checkbutton
         self.thru_flag = tk.BooleanVar()
         thru_checkbox = tk.Checkbutton(self.frame, text="THRU", variable=self.thru_flag, onvalue=True, offvalue=False, command=self.set_flags)
         thru_checkbox.grid(row=1, column=3, columnspan=1)
+
+        # if imported movement has thru flag, set to true
+        if "arms::THRU" in flags:
+            self.thru_flag.set(True)
+            thru_checkbox.select()
 
         # pack frame
         self.frame.pack(side=tk.TOP)
@@ -109,6 +133,7 @@ class SidebarGroup:
             self.movement.clear(self.canvas)
             self.movement.draw(self.canvas)
     
+    # set movement flags to stored flag variable values
     def set_flags(self):
         self.movement.options["flags"]["arms::ASYNC"] = self.async_flag.get()
         self.movement.options["flags"]["arms::ABSOLUTE"] = self.absolute_flag.get()

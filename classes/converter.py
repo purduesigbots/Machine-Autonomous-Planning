@@ -25,7 +25,7 @@ class Converter:
     def convert_x_reverse(x):
         # rescale inches to x
         x /= 144
-        x *= height
+        x *= SCREEN_HEIGHT
 
         # Return rounded value
         return round(x, 0)
@@ -36,7 +36,7 @@ class Converter:
 
         # rescale inches to y
         y /= 144
-        y *= height
+        y *= SCREEN_HEIGHT
 
         # Return rounded value
         return round(y,0)

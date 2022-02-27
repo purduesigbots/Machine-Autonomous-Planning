@@ -3,6 +3,7 @@ from classes.movement import Movement, SidebarGroup
 from classes.converter import Converter as c
 import tkinter as tk
 from tkinter import ttk
+import sys
 import os
 
 # constants
@@ -24,7 +25,7 @@ class Window:
 
         # create top menu bar
         self.mainmenu = tk.Menu(self.root)
-        self.mainmenu.add_command(label = "Import")
+        self.mainmenu.add_command(label = "Import", command=self.import_script)
         self.mainmenu.add_command(label = "Export", command=self.export_script)
         self.mainmenu.add_command(label = "Clear", command= self.clear)
         self.mainmenu.add_command(label = "Exit", command= root.destroy)
@@ -129,3 +130,94 @@ class Window:
             scrollregion=self.sidebar_canvas.bbox("all")
         ))
         self.sidebar_canvas.create_window((0, 0), anchor=tk.NW, window=self.sidebar)
+
+    def import_script(self):
+        self.clear()
+
+        # Check if the script.cpp file exists
+        if not os.path.isfile(os.path.join("output","script.cpp")):
+            try:
+                os.mkdir("output")
+            except:
+                pass
+            print("Please put script.cpp into the output directory")
+            sys.exit()
+
+        # Open the script
+        f = open("output/script.cpp","r")
+
+        start = None # Starting point based on odom::reset
+        allLines = f.readlines() # Read the script
+
+        for l in allLines:
+            if "odom::reset" in l and start == None:
+                # Get the start position with string indexing
+
+                # Remove whitespace and get values between curly brackets
+                data = "".join(l[l.index("{") : l.index("}")].split())[1:]
+                dsplit = data.split(",")
+
+                # Get start position
+                start = (
+                    c.convert_x_reverse(float(dsplit[0])), 
+                    c.convert_y_reverse(float(dsplit[1]))
+                )
+
+            elif "chassis::move" in l:
+                # Remove whitespace and get values between parenthesis
+                data = "".join(l[l.index("(") : l.index(")")].split())
+
+                # Get endpoint data of odom movement
+                pos = data[data.index("{")+1 : data.index("}")].split(",")
+
+                # Remove endpoint part from 'data'
+                data = data[data.index("},")+2:]
+
+                # Set the endpoint
+                endpoint = (
+                    c.convert_x_reverse(float(pos[0])), 
+                    c.convert_y_reverse(float(pos[1]))
+                )
+
+
+                speed = 0
+
+                # Check if there are any flags before fetching speed value
+                if "," in data:
+
+                    # Get the speed value and remove it from 'data'
+                    speed = float(data[:data.index(",")])
+                    data = data[data.index(",")+1:]
+                else:
+                    # Get the speed value and clear data
+                    speed = float(data)
+                    data = ""
+
+                '''
+                Create a new Movement based on:
+                - Current number of movements
+                - determined endpoint
+                - determined startpoint
+                - previous movement
+                '''
+                line_ref = self.canvas.create_line(start[0], start[1], endpoint[0], endpoint[1], 
+                                     fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+                
+                themove = Movement(start, self.end_point, line_ref, name = "Movement " + str(len(self.movements)+1))
+                s = SidebarGroup(themove, self.sidebar, self.canvas, speed=speed, flags=data)
+
+                # Set the movements speed to the parsed speed
+                themove.options["speed"] = speed
+
+                # Set the movement's flags to the parsed flags
+                for k in themove.options["flags"].keys():
+                    if k in data:
+                        themove.options["flags"][k] = True
+                
+                # Add the movement to our list of moves
+                self.movements.append(themove)
+
+                # Reset start to endpoint to chain movements
+                start = endpoint
+
+        
