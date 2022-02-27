@@ -36,6 +36,10 @@ class Movement:
     def set_speed(self, val):
         self.options["speed"] = val
     
+    # toggle async value
+    def toggle_async(self):
+        self.options["flags"]["arms::ASYNC"] = not self.options["flags"]["arms::ASYNC"]
+    
     # get string for exporting to script
     def to_string(self):
         joined_flags = " | ".join([f for f in self.options["flags"] if self.options["flags"][f]])
@@ -59,12 +63,28 @@ class SidebarGroup:
 
         # add speed label
         speed_txt = tk.Label(self.frame, text="Speed: ", font=("Arial", 12))
-        speed_txt.grid(row=0, column=3, columnspan=1)
+        speed_txt.grid(row=0, column=2, columnspan=1)
 
         # add speed slider
         self.slider = tk.Scale(self.frame, from_=0, to=100, orient="horizontal", command= lambda e: self.movement.set_speed(e))
         self.slider.set(100)
-        self.slider.grid(row=0, column=4, columnspan=2)
+        self.slider.grid(row=0, column=3, columnspan=2)
+
+        self.async_flag = tk.BooleanVar()
+        async_checkbox = tk.Checkbutton(self.frame, text="ASYNC", variable=self.async_flag, onvalue=True, offvalue=False, command=self.set_flags)
+        async_checkbox.grid(row=1, column=0, columnspan=1)
+
+        self.absolute_flag = tk.BooleanVar()
+        absolute_checkbox = tk.Checkbutton(self.frame, text="ABSOLUTE", variable=self.absolute_flag, onvalue=True, offvalue=False, command=self.set_flags)
+        absolute_checkbox.grid(row=1, column=1, columnspan=1)
+
+        self.backwards_flag = tk.BooleanVar()
+        backwards_checkbox = tk.Checkbutton(self.frame, text="BACKWARDS", variable=self.backwards_flag, onvalue=True, offvalue=False, command=self.set_flags)
+        backwards_checkbox.grid(row=1, column=2, columnspan=1)
+
+        self.thru_flag = tk.BooleanVar()
+        thru_checkbox = tk.Checkbutton(self.frame, text="THRU", variable=self.thru_flag, onvalue=True, offvalue=False, command=self.set_flags)
+        thru_checkbox.grid(row=1, column=3, columnspan=1)
 
         # pack frame
         self.frame.pack(side=tk.TOP)
@@ -88,3 +108,9 @@ class SidebarGroup:
             self.movement.selected = not self.selected
             self.movement.clear(self.canvas)
             self.movement.draw(self.canvas)
+    
+    def set_flags(self):
+        self.movement.options["flags"]["arms::ASYNC"] = self.async_flag.get()
+        self.movement.options["flags"]["arms::ABSOLUTE"] = self.absolute_flag.get()
+        self.movement.options["flags"]["arms::BACKWARDS"] = self.backwards_flag.get()
+        self.movement.options["flags"]["arms::THRU"] = self.thru_flag.get()
