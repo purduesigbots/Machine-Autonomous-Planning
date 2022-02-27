@@ -1,5 +1,4 @@
 # import statements
-from turtle import bgcolor
 from classes.movement import Movement, SidebarGroup
 from classes.converter import Converter as c
 import tkinter as tk
@@ -10,6 +9,9 @@ import os
 # constants
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
+
+# grid size in inches
+GRID_SIZE = 4
 
 # Window class encapsulates main logic
 class Window:
@@ -63,7 +65,12 @@ class Window:
         self.darkmode.set(True)
         settings.add_checkbutton(label="Dark Mode", onvalue=True, offvalue=False, variable=self.darkmode, state=tk.ACTIVE, command=self.set_darkmode)
         self.set_darkmode()
-        
+
+        # add toggle grid checkbutton
+        self.grid = tk.BooleanVar()
+        settings.add_checkbutton(label="Snap to Grid", onvalue=True, offvalue=False, variable=self.grid, command=self.set_grid)
+        self.gridlines = []
+
         # attach settings submenu to main menu
         mainmenu.add_cascade(label = "Settings", menu=settings)
 
@@ -94,6 +101,21 @@ class Window:
 
             for s in self.sidebar_groups:
                 s.adjust_theme()
+    
+    # display grid and force snap to grid
+    def set_grid(self):
+        if self.grid.get():
+            n = SCREEN_HEIGHT / 6.0 / 24.0 * GRID_SIZE
+            while n < SCREEN_HEIGHT:
+                line1 = self.canvas.create_line(n, 0, n, SCREEN_HEIGHT, fill="#404040")
+                line2 = self.canvas.create_line(0, n, SCREEN_HEIGHT, n, fill="#404040")
+                self.gridlines.append(line1)
+                self.gridlines.append(line2)
+                n += SCREEN_HEIGHT / 6.0 / 24.0 * GRID_SIZE
+        else:
+            for g in self.gridlines:
+                self.canvas.delete(g)
+            self.gridlines.clear()
 
     # switch which sidebar group is selected
     def switch_selection(self, new_index):
@@ -120,20 +142,24 @@ class Window:
     def click_handler(self, event):
         # if mouse click is on field
         if event.x < SCREEN_HEIGHT:
-            # convert to inches on field
-            # bottom left of field is (0, 0)
-            field_x = event.x / SCREEN_HEIGHT * 24.0 * 6
-            field_y = (600 - event.y) / SCREEN_HEIGHT * 24.0 * 6
+
+            # access x and y values
+            x = event.x
+            y = event.y
+
+            # TODO add snap to grid functionality
+            if self.grid.get():
+                pass
 
             # if this is first click
             if not self.creating_movement:
                 # set creating movement to true and store starting point
                 self.creating_movement = True
-                self.start_point = (event.x, event.y)
+                self.start_point = (x, y)
             # if not first click
             else:
                 # set creating movement to false and store end point
-                self.end_point = (event.x, event.y)
+                self.end_point = (x, y)
 
                 # create line between start and end point
                 line_ref = self.canvas.create_line(self.start_point[0], self.start_point[1], self.end_point[0], self.end_point[1], 
