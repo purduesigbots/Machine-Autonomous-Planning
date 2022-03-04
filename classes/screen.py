@@ -127,11 +127,17 @@ class Window:
 
     def key_handler(self, event):
         # if escape is hit, cancel the current movement
-        if self.creating_movement and event.keysym == "Escape":
+        if event.keysym == "Escape" and self.creating_movement:
             self.creating_movement = False
             self.canvas.delete(self.temp_line)
             self.start_point = (0, 0)
             self.end_point = (0, 0)
+        # if e is hit, export
+        elif event.keysym == "e":
+            self.export_script()
+        # if i is hit, import
+        elif event.keysym == "i":
+            self.import_script()
 
     # mouse click input handler
     def click_handler(self, event):
@@ -216,6 +222,12 @@ class Window:
             f.write(m.to_string())
             f.write("\n")
         f.close()
+
+        # pop up modal to alert user that script was exported
+        top = tk.Toplevel(self.root)
+        top.geometry("200x50+300+300")
+        top.title("Export")
+        tk.Label(top, text= "Exported script", font=('Arial 18 bold')).pack(side=tk.TOP)
     
     # clear the field
     def clear(self):
