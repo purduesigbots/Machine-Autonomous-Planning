@@ -146,7 +146,7 @@ class SidebarGroup:
     # select sidebar and movement
     def select(self):
         self.selected = True
-        self.txt.configure(foreground=SELECTED_COLOR)
+        self.txt.configure(fg=SELECTED_COLOR)
 
         # toggle movement selected value and redraw movement
         self.movement.selected = True
@@ -156,7 +156,7 @@ class SidebarGroup:
     # deselect sidebar and movement
     def deselect(self):
         self.selected = False
-        self.txt.configure(foreground=DARK_MODE_FG if self.owner.darkmode.get() else LIGHT_MODE_FG)
+        self.txt.configure(fg=DARK_MODE_FG if self.owner.darkmode.get() else LIGHT_MODE_FG)
 
         # toggle movement selected value and redraw movement
         self.movement.selected = False
@@ -168,32 +168,48 @@ class SidebarGroup:
         if self.owner.darkmode.get():
             self.frame.configure(bg=DARK_MODE_BG)
             self.txt.configure(bg=DARK_MODE_BG)
-            self.txt.configure(foreground=SELECTED_COLOR if self.selected else DARK_MODE_FG)
+            self.txt.configure(fg=SELECTED_COLOR if self.selected else DARK_MODE_FG)
             self.speed_txt.configure(bg=DARK_MODE_BG)
-            self.speed_txt.configure(foreground=DARK_MODE_FG)
+            self.speed_txt.configure(fg=DARK_MODE_FG)
             self.slider.configure(bg=DARK_MODE_BG)
-            self.slider.configure(foreground=DARK_MODE_FG)
+            self.slider.configure(fg=DARK_MODE_FG)
             self.async_checkbox.configure(bg=DARK_MODE_BG)
-            self.async_checkbox.configure(foreground=DARK_MODE_FG)
+            self.async_checkbox.configure(fg=DARK_MODE_FG)
+            self.async_checkbox.configure(selectcolor=DARK_MODE_BG)
+            self.async_checkbox.configure(activebackground=DARK_MODE_BG)
             self.absolute_checkbox.configure(bg=DARK_MODE_BG)
-            self.absolute_checkbox.configure(foreground=DARK_MODE_FG)
+            self.absolute_checkbox.configure(fg=DARK_MODE_FG)
+            self.absolute_checkbox.configure(selectcolor=DARK_MODE_BG)
+            self.absolute_checkbox.configure(activebackground=DARK_MODE_BG)
             self.backwards_checkbox.configure(bg=DARK_MODE_BG)
-            self.backwards_checkbox.configure(foreground=DARK_MODE_FG)
+            self.backwards_checkbox.configure(fg=DARK_MODE_FG)
+            self.backwards_checkbox.configure(selectcolor=DARK_MODE_BG)
+            self.backwards_checkbox.configure(activebackground=DARK_MODE_BG)
             self.thru_checkbox.configure(bg=DARK_MODE_BG)
-            self.thru_checkbox.configure(foreground=DARK_MODE_FG)
+            self.thru_checkbox.configure(fg=DARK_MODE_FG)
+            self.thru_checkbox.configure(selectcolor=DARK_MODE_BG)
+            self.thru_checkbox.configure(activebackground=DARK_MODE_BG)
         else:
             self.frame.configure(bg=LIGHT_MODE_BG)
             self.txt.configure(bg=LIGHT_MODE_BG)
-            self.txt.configure(foreground=SELECTED_COLOR if self.selected else LIGHT_MODE_FG)
+            self.txt.configure(fg=SELECTED_COLOR if self.selected else LIGHT_MODE_FG)
             self.speed_txt.configure(bg=LIGHT_MODE_BG)
-            self.speed_txt.configure(foreground=LIGHT_MODE_FG)
+            self.speed_txt.configure(fg=LIGHT_MODE_FG)
             self.slider.configure(bg=LIGHT_MODE_BG)
-            self.slider.configure(foreground=LIGHT_MODE_FG)
+            self.slider.configure(fg=LIGHT_MODE_FG)
             self.async_checkbox.configure(bg=LIGHT_MODE_BG)
-            self.async_checkbox.configure(foreground=LIGHT_MODE_FG)
+            self.async_checkbox.configure(fg=LIGHT_MODE_FG)
+            self.async_checkbox.configure(selectcolor=LIGHT_MODE_BG)
+            self.async_checkbox.configure(activebackground=LIGHT_MODE_BG)
             self.absolute_checkbox.configure(bg=LIGHT_MODE_BG)
-            self.absolute_checkbox.configure(foreground=LIGHT_MODE_FG)
+            self.absolute_checkbox.configure(fg=LIGHT_MODE_FG)
+            self.absolute_checkbox.configure(selectcolor=LIGHT_MODE_BG)
+            self.absolute_checkbox.configure(activebackground=LIGHT_MODE_BG)
             self.backwards_checkbox.configure(bg=LIGHT_MODE_BG)
-            self.backwards_checkbox.configure(foreground=LIGHT_MODE_FG)
+            self.backwards_checkbox.configure(fg=LIGHT_MODE_FG)
+            self.backwards_checkbox.configure(selectcolor=LIGHT_MODE_BG)
+            self.backwards_checkbox.configure(activebackground=LIGHT_MODE_BG)
             self.thru_checkbox.configure(bg=LIGHT_MODE_BG)
-            self.thru_checkbox.configure(foreground=LIGHT_MODE_FG)
+            self.thru_checkbox.configure(fg=LIGHT_MODE_FG)
+            self.thru_checkbox.configure(selectcolor=LIGHT_MODE_BG)
+            self.thru_checkbox.configure(activebackground=LIGHT_MODE_BG)
