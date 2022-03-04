@@ -152,6 +152,9 @@ class SidebarGroup:
         # bind mouse input to click_handler callback
         self.txt.bind("<Button-1>", self.click_handler)
 
+        # add delete button
+        self.delete_button = tk.Button(self.frame, text="DELETE MOVEMENT", fg="red", command=self.destroy)
+
     def click_handler(self, event):
         # if LMB click
         if event.num == 1:
@@ -173,6 +176,10 @@ class SidebarGroup:
         self.selected = True
         self.txt.configure(fg=SELECTED_COLOR)
 
+        # add delete button
+        self.delete_button = tk.Button(self.frame, text="DELETE MOVEMENT", fg="red", command=self.destroy)
+        self.delete_button.grid(row=2, column=0, columnspan=4)
+
         # toggle movement selected value and redraw movement
         self.movement.selected = True
         self.movement.clear()
@@ -183,10 +190,17 @@ class SidebarGroup:
         self.selected = False
         self.txt.configure(fg=DARK_MODE_FG if self.owner.darkmode.get() else LIGHT_MODE_FG)
 
+        self.delete_button.destroy()
+
         # toggle movement selected value and redraw movement
         self.movement.selected = False
         self.movement.clear()
         self.movement.draw()
+    
+    # delete self and corresponding movement and remove from Window
+    def destroy(self):
+        self.owner.remove_movement(self.movement)
+        self.owner.remove_sidebar_group(self)
     
     # adjust dark mode vs light mode
     def adjust_theme(self):

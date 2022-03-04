@@ -285,7 +285,6 @@ class Window:
                     # rebind tag
                     self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index - 1].click_handler)
 
-
                 # reset editing values
                 self.editing_movement = 0
                 self.editing_index = -1
@@ -463,4 +462,22 @@ class Window:
                 # Reset start to endpoint to chain movements
                 start = endpoint
 
-        
+    def remove_movement(self, movement):
+        ind = movement.index
+
+        self.movements[ind].clear()
+        self.movements.pop(ind)
+
+        for n in range(len(self.movements)):
+            self.movements[n].clear()
+            self.movements[n].draw()
+            self.movements[n].index = n
+    
+    def remove_sidebar_group(self, sidebar_group):
+        ind = sidebar_group.index
+
+        self.sidebar_groups.pop(ind)
+        sidebar_group.frame.destroy()
+
+        for n in range(len(self.sidebar_groups)):
+            self.sidebar_groups[n].index = n
