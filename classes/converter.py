@@ -1,3 +1,5 @@
+from classes.constants import SCREEN_HEIGHT
+
 class Converter:
 
     def convert_x(x):

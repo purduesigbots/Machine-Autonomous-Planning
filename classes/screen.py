@@ -207,10 +207,14 @@ class Window:
             os.mkdir("output")
         f = open("output/script.cpp", "w")
         if(len(self.movements) > 0):
+            f.write("// Reset odom\n")
             f.write(
                 f'odom::reset({{{c.convert_x(self.movements[0].start[0])}, {c.convert_y(self.movements[0].start[1])}}});\n')
+            f.write("\n")
         for m in self.movements:
+            f.write(m.get_name_as_cmt())
             f.write(m.to_string())
+            f.write("\n")
         f.close()
     
     # clear the field
@@ -222,7 +226,7 @@ class Window:
 
         # clear out the sidebar canvas and recreate the scrollable frame
         self.sidebar_canvas.delete("all")
-        self.sidebar = ttk.Frame(self.sidebar_canvas, width=SCREEN_WIDTH-SCREEN_HEIGHT, height=SCREEN_HEIGHT)
+        self.sidebar = tk.Frame(self.sidebar_canvas, width=SCREEN_WIDTH-SCREEN_HEIGHT, height=SCREEN_HEIGHT)
         self.sidebar.bind("<Configure>", lambda e: self.sidebar_canvas.configure(
             scrollregion=self.sidebar_canvas.bbox("all")
         ))
@@ -230,6 +234,9 @@ class Window:
 
         # clear sidebar_groups vector
         self.sidebar_groups.clear()
+
+        # set dark mode
+        self.set_darkmode()
 
     def import_script(self):
         self.clear()
@@ -304,7 +311,7 @@ class Window:
                                      fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
                 
                 themove = Movement(start, self.end_point, line_ref, name = "Movement " + str(len(self.movements)+1))
-                s = SidebarGroup(themove, self.sidebar, self.canvas, speed=speed, flags=data)
+                s = SidebarGroup(themove, self, len(self.sidebar_groups), speed=speed, flags=data)
 
                 # Set the movements speed to the parsed speed
                 themove.options["speed"] = speed

@@ -41,6 +41,10 @@ class Movement:
     def toggle_async(self):
         self.options["flags"]["arms::ASYNC"] = not self.options["flags"]["arms::ASYNC"]
     
+    # get name as comment
+    def get_name_as_cmt(self):
+        return f'// {self.name}\n'
+    
     # get string for exporting to script
     def to_string(self):
         joined_flags = " | ".join([f for f in self.options["flags"] if self.options["flags"][f]])
