@@ -86,7 +86,7 @@ class Window:
         self.canvas.bind("<Button>", self.click_handler)
         # bind mouse motion input to motion_handler callback
         self.canvas.bind("<Motion>", self.motion_handler)
-    
+
     # configure screen to use darkmode
     def set_darkmode(self):
         if self.darkmode.get():
@@ -198,7 +198,7 @@ class Window:
                 self.end_point = (x, y)
 
                 # create line between start and end point
-                line_ref = self.canvas.create_line(self.start_point[0], self.start_point[1], self.end_point[0], self.end_point[1], 
+                line_ref = self.canvas.create_line(self.start_point, self.end_point, 
                                      fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
                 
                 m = Movement(self, len(self.movements), self.start_point, self.end_point, line_ref, name="Movement {}".format(len(self.movements) + 1))
@@ -221,7 +221,7 @@ class Window:
                 self.end_point = (x, y)
 
                 # create line between start and end point
-                line_ref = self.canvas.create_line(self.start_point[0], self.start_point[1], self.end_point[0], self.end_point[1], 
+                line_ref = self.canvas.create_line(self.start_point, self.end_point, 
                                      fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
                 
                 # edit end position for selected movement
@@ -237,7 +237,7 @@ class Window:
                     self.movements[self.editing_index + 1].start = self.end_point
 
                     # create line between start and end point
-                    line_ref = self.canvas.create_line(self.end_point[0], self.end_point[1], self.movements[self.editing_index + 1].end[0], self.movements[self.editing_index + 1].end[1], 
+                    line_ref = self.canvas.create_line(self.end_point, self.movements[self.editing_index + 1].end, 
                                      fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
 
                     self.movements[self.editing_index + 1].line_ref = line_ref
@@ -261,7 +261,7 @@ class Window:
                 self.start_point = (x, y)
 
                 # create line between start and end point
-                line_ref = self.canvas.create_line(self.start_point[0], self.start_point[1], self.end_point[0], self.end_point[1], 
+                line_ref = self.canvas.create_line(self.start_point, self.end_point, 
                                      fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
                 
                 # edit start position for selected movement
@@ -277,7 +277,7 @@ class Window:
                     self.movements[self.editing_index - 1].end = self.start_point
 
                     # create line between start and end point
-                    line_ref = self.canvas.create_line(self.movements[self.editing_index - 1].start[0], self.movements[self.editing_index - 1].start[1], self.start_point[0], self.start_point[1], 
+                    line_ref = self.canvas.create_line(self.movements[self.editing_index - 1].start, self.start_point, 
                                      fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
 
                     self.movements[self.editing_index - 1].line_ref = line_ref
@@ -308,7 +308,7 @@ class Window:
                 self.start_point = self.movements[self.editing_index].start
 
                 # create a new temp line between start point and current mouse position
-                self.temp_line = self.canvas.create_line(self.start_point[0], self.start_point[1], event.x, event.y, 
+                self.temp_line = self.canvas.create_line(self.start_point, (event.x, event.y), 
                                                fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
             # if editing start point
             else:
@@ -316,7 +316,7 @@ class Window:
                 self.end_point = self.movements[self.editing_index].end
 
                 # create a new temp line between end point and current mouse position
-                self.temp_line = self.canvas.create_line(event.x, event.y, self.end_point[0], self.end_point[1],
+                self.temp_line = self.canvas.create_line((event.x, event.y), self.end_point,
                                                fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
         
         # if currently drawing a line
@@ -325,7 +325,7 @@ class Window:
             self.canvas.delete(self.temp_line)
 
             # create a new temp line between start point and current mouse position
-            self.temp_line = self.canvas.create_line(self.start_point[0], self.start_point[1], event.x, event.y, 
+            self.temp_line = self.canvas.create_line(self.start_point, (event.x, event.y), 
                                                fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
 
     # Export path as cpp script
