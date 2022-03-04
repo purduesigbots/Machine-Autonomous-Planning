@@ -231,6 +231,21 @@ class Window:
                 # rebind tag
                 self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index].click_handler)
 
+                # edit start posiiton for next movement in chain
+                if self.editing_index + 1 < len(self.movements):
+                    self.movements[self.editing_index + 1].clear()
+                    self.movements[self.editing_index + 1].start = self.end_point
+
+                    # create line between start and end point
+                    line_ref = self.canvas.create_line(self.end_point[0], self.end_point[1], self.movements[self.editing_index + 1].end[0], self.movements[self.editing_index + 1].end[1], 
+                                     fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+
+                    self.movements[self.editing_index + 1].line_ref = line_ref
+
+                    # rebind tag
+                    self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index + 1].click_handler)
+
+
                 # reset editing values
                 self.editing_movement = 0
                 self.editing_index = -1
@@ -255,6 +270,21 @@ class Window:
                 
                 # rebind tag
                 self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index].click_handler)
+
+                # edit end posiiton for previous movement in chain
+                if self.editing_index - 1 >= 0:
+                    self.movements[self.editing_index - 1].clear()
+                    self.movements[self.editing_index - 1].end = self.start_point
+
+                    # create line between start and end point
+                    line_ref = self.canvas.create_line(self.movements[self.editing_index - 1].start[0], self.movements[self.editing_index - 1].start[1], self.start_point[0], self.start_point[1], 
+                                     fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+
+                    self.movements[self.editing_index - 1].line_ref = line_ref
+
+                    # rebind tag
+                    self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index - 1].click_handler)
+
 
                 # reset editing values
                 self.editing_movement = 0
