@@ -123,6 +123,8 @@ class Window:
         top.title("Help")
         tk.Label(top, text="Help", font=("Arial 12 bold")).pack(side=tk.TOP)
         tk.Label(top, text="Click once to begin a movement, click again to end it.").pack(side=tk.TOP)
+        tk.Label(top, text="Click on a movement's name in the sidebar to select it. Selected movements\ncan be moved by clicking on the arrow to adjust the start or end points.").pack(side=tk.TOP)
+        tk.Label(top, text="Selecting a movement also provides a delete button for the movement.").pack(side=tk.TOP)
         tk.Label(top, text="[Esc]: Cancel a movement").pack(side=tk.TOP)
         tk.Label(top, text="[E]: Export script").pack(side=tk.TOP)
         tk.Label(top, text="[I]: Import script").pack(side=tk.TOP)
