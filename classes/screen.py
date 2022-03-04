@@ -16,6 +16,8 @@ class Window:
         self.creating_movement = False
         self.start_point = (0, 0)
         self.end_point = (0, 0)
+        self.editing_movement = 0
+        self.editing_index = -1
         self.root = root
         self.canvas = canvas
         self.temp_line = None
@@ -186,9 +188,10 @@ class Window:
 
             # if this is first click
             if not self.creating_movement:
-                # set creating movement to true and store starting point
-                self.creating_movement = True
-                self.start_point = (x, y)
+                if self.editing_movement == 0:
+                    # set creating movement to true and store starting point
+                    self.creating_movement = True
+                    self.start_point = (x, y)
             # if not first click
             else:
                 # set creating movement to false and store end point
@@ -198,19 +201,72 @@ class Window:
                 line_ref = self.canvas.create_line(self.start_point[0], self.start_point[1], self.end_point[0], self.end_point[1], 
                                      fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
                 
-                m = Movement(self.start_point, self.end_point, line_ref, name="Movement {}".format(len(self.movements) + 1))
+                m = Movement(self, len(self.movements), self.start_point, self.end_point, line_ref, name="Movement {}".format(len(self.movements) + 1))
                 s = SidebarGroup(m, self, len(self.sidebar_groups))
 
                 self.movements.append(m)
                 self.sidebar_groups.append(s)
                 
                 self.start_point = self.end_point
+            
+            if self.editing_movement == 2:
+                self.editing_movement = 1
+            elif self.editing_movement == 1:
+                # create end point
+                self.end_point = (x, y)
+
+                # create line between start and end point
+                line_ref = self.canvas.create_line(self.start_point[0], self.start_point[1], self.end_point[0], self.end_point[1], 
+                                     fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+                
+                self.movements[self.editing_index].end = self.end_point
+                self.movements[self.editing_index].line_ref = line_ref
+                self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index].click_handler)
+
+                self.editing_movement = 0
+                self.editing_index = -1
+            
+            if self.editing_movement == -2:
+                self.editing_movement = -1
+            elif self.editing_movement == -1:
+                # create end point
+                self.start_point = (x, y)
+
+                # create line between start and end point
+                line_ref = self.canvas.create_line(self.start_point[0], self.start_point[1], self.end_point[0], self.end_point[1], 
+                                     fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+                
+                self.movements[self.editing_index].start = self.start_point
+                self.movements[self.editing_index].line_ref = line_ref
+                self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index].click_handler)
+
+                self.editing_movement = 0
+                self.editing_index = -1
         # if mouse click is not on field
         else:
             print("Outside field")
 
     # mouse motion input handler
     def motion_handler(self, event):
+        if self.editing_movement != 0:
+            self.creating_movement = False
+
+            # delete the current temp line
+            self.canvas.delete(self.temp_line)
+
+            if self.editing_movement > 0:
+                self.start_point = self.movements[self.editing_index].start
+
+                # create a new temp line between start point and current mouse position
+                self.temp_line = self.canvas.create_line(self.start_point[0], self.start_point[1], event.x, event.y, 
+                                               fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+            else:
+                self.end_point = self.movements[self.editing_index].end
+
+                # create a new temp line between start point and current mouse position
+                self.temp_line = self.canvas.create_line(event.x, event.y, self.end_point[0], self.end_point[1],
+                                               fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+        
         # if currently drawing a line
         if self.creating_movement:
             # delete the current temp line
@@ -245,7 +301,7 @@ class Window:
     def clear(self):
         # clear all movements
         for m in self.movements:
-            self.canvas.delete(m.line_ref)
+            m.clear()
         self.movements = []
 
         # clear out the sidebar canvas and recreate the scrollable frame
@@ -334,7 +390,7 @@ class Window:
                 line_ref = self.canvas.create_line(start[0], start[1], endpoint[0], endpoint[1], 
                                      fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
                 
-                themove = Movement(start, self.end_point, line_ref, name = "Movement " + str(len(self.movements)+1))
+                themove = Movement(self, len(self.movements), start, self.end_point, line_ref, name = "Movement " + str(len(self.movements)+1))
                 s = SidebarGroup(themove, self, len(self.sidebar_groups), speed=speed, flags=data)
 
                 # Set the movements speed to the parsed speed

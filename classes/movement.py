@@ -2,15 +2,18 @@
 from classes.converter import Converter as c
 from classes.constants import DARK_MODE_BG, DARK_MODE_FG, LIGHT_MODE_BG, LIGHT_MODE_FG, SELECTED_COLOR
 import tkinter as tk
+import math
 
 # Movement class encapsulates code associated with movements
 class Movement:
 
-    def __init__(self, start, end, line_ref, name="Movement"):
+    def __init__(self, owner, index, start, end, line_ref, name="Movement"):
         # initialize variables
+        self.owner = owner
+        self.index = index
+        self.line_ref = line_ref
         self.start = start
         self.end = end
-        self.line_ref = line_ref
         self.options = {
             "speed": 100,
             "flags": {
@@ -23,15 +26,35 @@ class Movement:
         self.name = name
         self.selected = False
 
+        # bind click handler to line_ref tag
+        self.owner.canvas.tag_bind(self.line_ref, "<Button-1>", self.click_handler)
+    
+    # handles mouse click input for movement
+    def click_handler(self, event):
+        if self.selected and self.owner.editing_movement == 0:
+            dist_from_end = math.sqrt((self.end[0] - event.x) ** 2 + (self.end[1] - event.y) ** 2)
+            dist_from_start = math.sqrt((self.start[0] - event.x) ** 2 + (self.start[1] - event.y) ** 2)
+            
+            if dist_from_end <= dist_from_start:
+                self.owner.editing_movement = 2
+            else:
+                self.owner.editing_movement = -2
+
+            self.owner.editing_index = self.index
+            self.clear()
+
     # clear arrow from canvas
-    def clear(self, canvas):
-        canvas.delete(self.line_ref)
+    def clear(self):
+        self.owner.canvas.delete(self.line_ref)
 
     # draw arrow on canvas
-    def draw(self, canvas):
+    def draw(self):
         line_fill = "green" if self.selected else "lime"
-        self.line_ref = canvas.create_line(self.start[0], self.start[1], self.end[0], self.end[1], 
+        self.line_ref = self.owner.canvas.create_line(self.start[0], self.start[1], self.end[0], self.end[1], 
                                      fill=line_fill, width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+        
+        # rebind click handler
+        self.owner.canvas.tag_bind(self.line_ref, "<Button-1>", self.click_handler)
     
     # set the speed to val
     def set_speed(self, val):
@@ -148,8 +171,8 @@ class SidebarGroup:
 
         # toggle movement selected value and redraw movement
         self.movement.selected = True
-        self.movement.clear(self.owner.canvas)
-        self.movement.draw(self.owner.canvas)
+        self.movement.clear()
+        self.movement.draw()
 
     # deselect sidebar and movement
     def deselect(self):
@@ -158,8 +181,8 @@ class SidebarGroup:
 
         # toggle movement selected value and redraw movement
         self.movement.selected = False
-        self.movement.clear(self.owner.canvas)
-        self.movement.draw(self.owner.canvas)
+        self.movement.clear()
+        self.movement.draw()
     
     # adjust dark mode vs light mode
     def adjust_theme(self):
