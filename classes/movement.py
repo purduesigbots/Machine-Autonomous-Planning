@@ -1,13 +1,7 @@
 # import statements
 from classes.converter import Converter as c
+from classes.constants import DARK_MODE_BG, DARK_MODE_FG, LIGHT_MODE_BG, LIGHT_MODE_FG, SELECTED_COLOR
 import tkinter as tk
-
-# theme constants
-DARK_MODE_BG = "black"
-DARK_MODE_FG = "white"
-LIGHT_MODE_BG = "white"
-LIGHT_MODE_FG = "black"
-SELECTED_COLOR = "red"
 
 # Movement class encapsulates code associated with movements
 class Movement:

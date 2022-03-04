@@ -2,10 +2,7 @@
 import tkinter as tk
 from classes.screen import Window
 from PIL import Image, ImageTk
-
-# constants
-SCREEN_WIDTH = 1000
-SCREEN_HEIGHT = 600
+from classes.constants import SCREEN_HEIGHT, SCREEN_WIDTH
 
 # create window
 root = tk.Tk()

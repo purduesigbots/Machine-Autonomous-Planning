@@ -1,18 +1,12 @@
 # import statements
 from classes.movement import Movement, SidebarGroup
 from classes.converter import Converter as c
+from classes.constants import SCREEN_WIDTH, SCREEN_HEIGHT, GRID_SIZE
 import tkinter as tk
 from tkinter import ttk
 import sys
 import os
 from math import fmod
-
-# constants
-SCREEN_WIDTH = 1000
-SCREEN_HEIGHT = 600
-
-# grid size in inches
-GRID_SIZE = 4
 
 # Window class encapsulates main logic
 class Window:

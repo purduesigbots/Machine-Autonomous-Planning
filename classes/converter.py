@@ -1,6 +1,3 @@
-# constants
-SCREEN_HEIGHT = 600
-
 class Converter:
 
     def convert_x(x):
