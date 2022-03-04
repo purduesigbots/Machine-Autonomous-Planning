@@ -69,6 +69,9 @@ class Window:
         # attach settings submenu to main menu
         mainmenu.add_cascade(label = "Settings", menu=settings)
 
+        # add help to main menu
+        mainmenu.add_command(label = "Help", command= self.display_help)
+
         # add exit to main menu
         mainmenu.add_command(label = "Exit", command= root.destroy)
 
@@ -111,6 +114,16 @@ class Window:
             for g in self.gridlines:
                 self.canvas.delete(g)
             self.gridlines.clear()
+    
+    # display help window
+    def display_help(self):
+        top = tk.Toplevel(self.root)
+        top.title("Help")
+        tk.Label(top, text="Help", font=("Arial 12 bold")).pack(side=tk.TOP)
+        tk.Label(top, text="Click once to begin a movement, click again to end it.").pack(side=tk.TOP)
+        tk.Label(top, text="[Esc]: Cancel a movement").pack(side=tk.TOP)
+        tk.Label(top, text="[E]: Export script").pack(side=tk.TOP)
+        tk.Label(top, text="[I]: Import script").pack(side=tk.TOP)
 
     # switch which sidebar group is selected
     def switch_selection(self, new_index):
@@ -196,7 +209,7 @@ class Window:
         else:
             print("Outside field")
 
-    # mouse motion inpute handler
+    # mouse motion input handler
     def motion_handler(self, event):
         # if currently drawing a line
         if self.creating_movement:
@@ -225,7 +238,6 @@ class Window:
 
         # pop up modal to alert user that script was exported
         top = tk.Toplevel(self.root)
-        top.geometry("200x50+300+300")
         top.title("Export")
         tk.Label(top, text= "Exported script", font=('Arial 18 bold')).pack(side=tk.TOP)
     
