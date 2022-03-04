@@ -31,15 +31,19 @@ class Movement:
     
     # handles mouse click input for movement
     def click_handler(self, event):
+        # if the movement is selected and the canvas is not editing
         if self.selected and self.owner.editing_movement == 0:
+            # calculate distances from both end points
             dist_from_end = math.sqrt((self.end[0] - event.x) ** 2 + (self.end[1] - event.y) ** 2)
             dist_from_start = math.sqrt((self.start[0] - event.x) ** 2 + (self.start[1] - event.y) ** 2)
             
+            # based on distances, switch to editing end or start
             if dist_from_end <= dist_from_start:
                 self.owner.editing_movement = 2
             else:
                 self.owner.editing_movement = -2
 
+            # set index and clear current line
             self.owner.editing_index = self.index
             self.clear()
 

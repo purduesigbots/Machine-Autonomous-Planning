@@ -209,9 +209,14 @@ class Window:
                 
                 self.start_point = self.end_point
             
+            # if editing end point and on dummy click, decrement
             if self.editing_movement == 2:
                 self.editing_movement = 1
+            # if editing end point and on actual click
             elif self.editing_movement == 1:
+                # delete temp line
+                self.canvas.delete(self.temp_line)
+
                 # create end point
                 self.end_point = (x, y)
 
@@ -219,16 +224,24 @@ class Window:
                 line_ref = self.canvas.create_line(self.start_point[0], self.start_point[1], self.end_point[0], self.end_point[1], 
                                      fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
                 
+                # edit end position for selected movement
                 self.movements[self.editing_index].end = self.end_point
                 self.movements[self.editing_index].line_ref = line_ref
+
+                # rebind tag
                 self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index].click_handler)
 
+                # reset editing values
                 self.editing_movement = 0
                 self.editing_index = -1
             
+            # if editing start point and on dummy click, decrement
             if self.editing_movement == -2:
                 self.editing_movement = -1
+            # if editing start point and on actual click
             elif self.editing_movement == -1:
+                # delete temp line
+                self.canvas.delete(self.temp_line)
                 # create end point
                 self.start_point = (x, y)
 
@@ -236,10 +249,14 @@ class Window:
                 line_ref = self.canvas.create_line(self.start_point[0], self.start_point[1], self.end_point[0], self.end_point[1], 
                                      fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
                 
+                # edit start position for selected movement
                 self.movements[self.editing_index].start = self.start_point
                 self.movements[self.editing_index].line_ref = line_ref
+                
+                # rebind tag
                 self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index].click_handler)
 
+                # reset editing values
                 self.editing_movement = 0
                 self.editing_index = -1
         # if mouse click is not on field
@@ -248,22 +265,28 @@ class Window:
 
     # mouse motion input handler
     def motion_handler(self, event):
+        # if editing a movement
         if self.editing_movement != 0:
+            # make sure to set creating to false so that a new line is not made
             self.creating_movement = False
 
             # delete the current temp line
             self.canvas.delete(self.temp_line)
 
+            # if editing end point
             if self.editing_movement > 0:
+                # keep start point constant
                 self.start_point = self.movements[self.editing_index].start
 
                 # create a new temp line between start point and current mouse position
                 self.temp_line = self.canvas.create_line(self.start_point[0], self.start_point[1], event.x, event.y, 
                                                fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+            # if editing start point
             else:
+                # keep end point constant
                 self.end_point = self.movements[self.editing_index].end
 
-                # create a new temp line between start point and current mouse position
+                # create a new temp line between end point and current mouse position
                 self.temp_line = self.canvas.create_line(event.x, event.y, self.end_point[0], self.end_point[1],
                                                fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
         
