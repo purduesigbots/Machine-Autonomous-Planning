@@ -15,7 +15,7 @@ class Movement:
             "speed": 100,
             "flags": {
                 "arms::ASYNC": False,
-                "arms::ABSOLUTE": False,
+                "arms::RELATIVE": False,
                 "arms::BACKWARDS": False,
                 "arms::THRU": False,
             }
@@ -86,15 +86,15 @@ class SidebarGroup:
             self.async_flag.set(True)
             self.async_checkbox.select()
 
-        # create absolute flag variable and checkbutton
-        self.absolute_flag = tk.BooleanVar()
-        self.absolute_checkbox = tk.Checkbutton(self.frame, text="ABSOLUTE", variable=self.absolute_flag, onvalue=True, offvalue=False, command=self.set_flags)
-        self.absolute_checkbox.grid(row=1, column=1, columnspan=1)
+        # create relative flag variable and checkbutton
+        self.relative_flag = tk.BooleanVar()
+        self.relative_checkbox = tk.Checkbutton(self.frame, text="RELATIVE", variable=self.relative_flag, onvalue=True, offvalue=False, command=self.set_flags)
+        self.relative_checkbox.grid(row=1, column=1, columnspan=1)
 
-        # if imported movement has absolute flag, set to true
-        if "arms::ABSOLUTE" in flags:
-            self.absolute_flag.set(True)
-            self.absolute_checkbox.select()
+        # if imported movement has relative flag, set to true
+        if "arms::RELATIVE" in flags:
+            self.relative_flag.set(True)
+            self.relative_checkbox.select()
 
         # create backwards flag variable and checkbutton
         self.backwards_flag = tk.BooleanVar()
@@ -137,7 +137,7 @@ class SidebarGroup:
     # set movement flags to stored flag variable values
     def set_flags(self):
         self.movement.options["flags"]["arms::ASYNC"] = self.async_flag.get()
-        self.movement.options["flags"]["arms::ABSOLUTE"] = self.absolute_flag.get()
+        self.movement.options["flags"]["arms::RELATIVE"] = self.relative_flag.get()
         self.movement.options["flags"]["arms::BACKWARDS"] = self.backwards_flag.get()
         self.movement.options["flags"]["arms::THRU"] = self.thru_flag.get()
     
@@ -175,10 +175,10 @@ class SidebarGroup:
             self.async_checkbox.configure(fg=DARK_MODE_FG)
             self.async_checkbox.configure(selectcolor=DARK_MODE_BG)
             self.async_checkbox.configure(activebackground=DARK_MODE_BG)
-            self.absolute_checkbox.configure(bg=DARK_MODE_BG)
-            self.absolute_checkbox.configure(fg=DARK_MODE_FG)
-            self.absolute_checkbox.configure(selectcolor=DARK_MODE_BG)
-            self.absolute_checkbox.configure(activebackground=DARK_MODE_BG)
+            self.relative_checkbox.configure(bg=DARK_MODE_BG)
+            self.relative_checkbox.configure(fg=DARK_MODE_FG)
+            self.relative_checkbox.configure(selectcolor=DARK_MODE_BG)
+            self.relative_checkbox.configure(activebackground=DARK_MODE_BG)
             self.backwards_checkbox.configure(bg=DARK_MODE_BG)
             self.backwards_checkbox.configure(fg=DARK_MODE_FG)
             self.backwards_checkbox.configure(selectcolor=DARK_MODE_BG)
@@ -199,10 +199,10 @@ class SidebarGroup:
             self.async_checkbox.configure(fg=LIGHT_MODE_FG)
             self.async_checkbox.configure(selectcolor=LIGHT_MODE_BG)
             self.async_checkbox.configure(activebackground=LIGHT_MODE_BG)
-            self.absolute_checkbox.configure(bg=LIGHT_MODE_BG)
-            self.absolute_checkbox.configure(fg=LIGHT_MODE_FG)
-            self.absolute_checkbox.configure(selectcolor=LIGHT_MODE_BG)
-            self.absolute_checkbox.configure(activebackground=LIGHT_MODE_BG)
+            self.relative_checkbox.configure(bg=LIGHT_MODE_BG)
+            self.relative_checkbox.configure(fg=LIGHT_MODE_FG)
+            self.relative_checkbox.configure(selectcolor=LIGHT_MODE_BG)
+            self.relative_checkbox.configure(activebackground=LIGHT_MODE_BG)
             self.backwards_checkbox.configure(bg=LIGHT_MODE_BG)
             self.backwards_checkbox.configure(fg=LIGHT_MODE_FG)
             self.backwards_checkbox.configure(selectcolor=LIGHT_MODE_BG)

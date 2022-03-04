@@ -1,7 +1,7 @@
 # import statements
 from classes.movement import Movement, SidebarGroup
 from classes.converter import Converter as c
-from classes.constants import SCREEN_WIDTH, SCREEN_HEIGHT, GRID_SIZE
+from classes.constants import SCREEN_HEIGHT, GRID_SIZE, SIDEBAR_WIDTH
 import tkinter as tk
 from tkinter import ttk
 import sys
@@ -23,9 +23,9 @@ class Window:
         self.sidebar_groups = []
 
         # create scrollable canvas for sidebar
-        self.sidebar_canvas = tk.Canvas(root, width=SCREEN_WIDTH-SCREEN_HEIGHT, height=SCREEN_HEIGHT)
+        self.sidebar_canvas = tk.Canvas(root, width=SIDEBAR_WIDTH, height=SCREEN_HEIGHT)
         v = ttk.Scrollbar(self.root, orient="vertical", command=self.sidebar_canvas.yview)
-        self.sidebar = tk.Frame(self.sidebar_canvas, width=SCREEN_WIDTH-SCREEN_HEIGHT, height=SCREEN_HEIGHT)
+        self.sidebar = tk.Frame(self.sidebar_canvas, width=SIDEBAR_WIDTH, height=SCREEN_HEIGHT)
         self.sidebar.bind("<Configure>", lambda e: self.sidebar_canvas.configure(
             scrollregion=self.sidebar_canvas.bbox("all")
         ))
@@ -250,7 +250,7 @@ class Window:
 
         # clear out the sidebar canvas and recreate the scrollable frame
         self.sidebar_canvas.delete("all")
-        self.sidebar = tk.Frame(self.sidebar_canvas, width=SCREEN_WIDTH-SCREEN_HEIGHT, height=SCREEN_HEIGHT)
+        self.sidebar = tk.Frame(self.sidebar_canvas, width=SIDEBAR_WIDTH, height=SCREEN_HEIGHT)
         self.sidebar.bind("<Configure>", lambda e: self.sidebar_canvas.configure(
             scrollregion=self.sidebar_canvas.bbox("all")
         ))

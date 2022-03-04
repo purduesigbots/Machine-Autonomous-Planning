@@ -1,6 +1,7 @@
-# screen size
+# screen element sizes
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
+SIDEBAR_WIDTH = SCREEN_WIDTH - SCREEN_HEIGHT
 
 # grid size in inches
 GRID_SIZE = 4
