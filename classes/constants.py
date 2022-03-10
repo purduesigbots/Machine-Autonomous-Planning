@@ -7,8 +7,8 @@ SIDEBAR_WIDTH = SCREEN_WIDTH - SCREEN_HEIGHT
 GRID_SIZE = 4
 
 # theme constants
-DARK_MODE_BG = "black"
+DARK_MODE_BG = "#1e1e1e"
 DARK_MODE_FG = "white"
-LIGHT_MODE_BG = "white"
+LIGHT_MODE_BG = "#e6e6e6"
 LIGHT_MODE_FG = "black"
 SELECTED_COLOR = "red"

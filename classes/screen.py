@@ -1,7 +1,7 @@
 # import statements
 from classes.movement import Movement, SidebarGroup
 from classes.converter import Converter as c
-from classes.constants import SCREEN_HEIGHT, GRID_SIZE, SIDEBAR_WIDTH
+from classes.constants import *
 import tkinter as tk
 from tkinter import ttk
 import sys
@@ -90,14 +90,14 @@ class Window:
     # configure screen to use darkmode
     def set_darkmode(self):
         if self.darkmode.get():
-            self.sidebar.configure(bg="black")
-            self.sidebar_canvas.configure(bg="black")
+            self.sidebar.configure(bg=DARK_MODE_BG)
+            self.sidebar_canvas.configure(bg=DARK_MODE_BG)
 
             for s in self.sidebar_groups:
                 s.adjust_theme()
         else:
-            self.sidebar.configure(bg="white")
-            self.sidebar_canvas.configure(bg="white")
+            self.sidebar.configure(bg=LIGHT_MODE_BG)
+            self.sidebar_canvas.configure(bg=LIGHT_MODE_BG)
 
             for s in self.sidebar_groups:
                 s.adjust_theme()
