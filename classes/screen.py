@@ -190,6 +190,12 @@ class Window:
                     y = y - y_mod
                 print("y", y)
 
+            try:
+                self.canvas.delete(self.next_temp_line)
+                self.canvas.delete(self.prev_temp_line)
+            except:
+                pass
+
             # if this is first click
             if not self.creating_movement:
                 if self.editing_movement == 0:
@@ -219,7 +225,7 @@ class Window:
 
                 self.movements.append(m)
                 self.sidebar_groups.append(s)
-                
+
                 self.start_point = self.end_point
             
             # if editing end point and on dummy click, decrement
