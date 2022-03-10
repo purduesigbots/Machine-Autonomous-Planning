@@ -237,7 +237,7 @@ class Window:
                 # rebind tag
                 self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index].click_handler)
 
-                # edit start posiiton for next movement in chain
+                # edit start posititon for next movement in chain
                 if self.editing_index + 1 < len(self.movements):
                     self.movements[self.editing_index + 1].clear()
                     self.movements[self.editing_index + 1].start = self.end_point
@@ -277,7 +277,7 @@ class Window:
                 # rebind tag
                 self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index].click_handler)
 
-                # edit end posiiton for previous movement in chain
+                # edit end posititon for previous movement in chain
                 if self.editing_index - 1 >= 0:
                     self.movements[self.editing_index - 1].clear()
                     self.movements[self.editing_index - 1].end = self.start_point
@@ -470,7 +470,9 @@ class Window:
 
     def remove_movement(self, movement):
         ind = movement.index
-
+        if ind > 0 and ind < len(self.movements)-1:
+            self.movements[ind+1].clear()
+            self.movements[ind+1].start = self.movements[ind].start
         self.movements[ind].clear()
         self.movements.pop(ind)
 
