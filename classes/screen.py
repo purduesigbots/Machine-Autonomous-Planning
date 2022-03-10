@@ -193,8 +193,12 @@ class Window:
                 if self.editing_movement == 0:
                     # set creating movement to true and store starting point
                     self.creating_movement = True
-                    self.start_point = (x, y)
-            # if not first click
+                    #Link start of new movement to previous movement for one continuous path
+                    if self.movements:
+                        self.start_point = self.movements[len(self.movements)-1].end
+                    else:
+                        self.start_point = (x, y)
+                    # if not first click
             else:
                 # set creating movement to false and store end point
                 self.end_point = (x, y)
