@@ -21,6 +21,8 @@ class Window:
         self.root = root
         self.canvas = canvas
         self.temp_line = None
+        self.prev_temp_line = None
+        self.next_temp_line = None
         self.movements = []
         self.sidebar_groups = []
 
@@ -223,6 +225,9 @@ class Window:
             # if editing end point and on dummy click, decrement
             if self.editing_movement == 2:
                 self.editing_movement = 1
+
+                if self.editing_index < len(self.movements) - 1:
+                    self.next_temp_line = self.movements[self.editing_index + 1].line_ref
             # if editing end point and on actual click
             elif self.editing_movement == 1:
                 # delete temp line
@@ -264,6 +269,9 @@ class Window:
             # if editing start point and on dummy click, decrement
             if self.editing_movement == -2:
                 self.editing_movement = -1
+
+                if self.editing_index > 0:
+                    self.prev_temp_line = self.movements[self.editing_index - 1].line_ref
             # if editing start point and on actual click
             elif self.editing_movement == -1:
                 # delete temp line
@@ -315,20 +323,36 @@ class Window:
 
             # if editing end point
             if self.editing_movement > 0:
+                # delete the current next temp line
+                self.canvas.delete(self.next_temp_line)
+
                 # keep start point constant
                 self.start_point = self.movements[self.editing_index].start
 
                 # create a new temp line between start point and current mouse position
                 self.temp_line = self.canvas.create_line(self.start_point, (event.x, event.y), 
                                                fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+                
+                # create a new next temp line
+                if self.editing_index < len(self.movements) - 1:
+                    self.next_temp_line = self.canvas.create_line((event.x, event.y), self.movements[self.editing_index + 1].end,
+                                               fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
             # if editing start point
             else:
+                # delete the current prev temp line
+                self.canvas.delete(self.prev_temp_line)
+
                 # keep end point constant
                 self.end_point = self.movements[self.editing_index].end
 
                 # create a new temp line between end point and current mouse position
                 self.temp_line = self.canvas.create_line((event.x, event.y), self.end_point,
                                                fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+
+                # create a new prev temp line
+                if self.editing_index > 0:
+                    self.prev_temp_line = self.canvas.create_line(self.movements[self.editing_index - 1].start, (event.x, event.y),
+                                               fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
         
         # if currently drawing a line
         if self.creating_movement:
