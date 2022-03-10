@@ -206,8 +206,13 @@ class Window:
                 # create line between start and end point
                 line_ref = self.canvas.create_line(self.start_point, self.end_point, 
                                      fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+
+                # Keep incrementing based off previous movement's name
+                prev_movement_count = 0
+                if self.movements:
+                    prev_movement_count = int(self.movements[len(self.movements)-1].name.split(" ")[1])
                 
-                m = Movement(self, len(self.movements), self.start_point, self.end_point, line_ref, name="Movement {}".format(len(self.movements) + 1))
+                m = Movement(self, len(self.movements), self.start_point, self.end_point, line_ref, name="Movement {}".format(prev_movement_count + 1))
                 s = SidebarGroup(m, self, len(self.sidebar_groups))
 
                 self.movements.append(m)
