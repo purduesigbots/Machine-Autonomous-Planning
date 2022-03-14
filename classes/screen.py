@@ -389,6 +389,15 @@ class Window:
         top = tk.Toplevel(self.root)
         top.title("Export")
         tk.Label(top, text= "Exported script", font=('Arial 18 bold')).pack(side=tk.TOP)
+
+        # copy exported script to clipboard
+        f = open("output/script.cpp","r")
+        lines = f.readlines()
+        self.root.clipboard_clear()
+        for l in lines:
+            self.root.clipboard_append(l)
+        f.close()
+
     
     # clear the field
     def clear(self):
