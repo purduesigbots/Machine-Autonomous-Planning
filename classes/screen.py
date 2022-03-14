@@ -135,6 +135,7 @@ class Window:
     def switch_selection(self, new_index):
         # if the current selected index exists, then deselect it
         if self.sidebar_selection_index != -1:
+            print(self.sidebar_selection_index)
             self.sidebar_groups[self.sidebar_selection_index].deselect()
         
         # if the new index exists, then select it
@@ -492,7 +493,7 @@ class Window:
                 line_ref = self.canvas.create_line(start[0], start[1], endpoint[0], endpoint[1], 
                                      fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
                 
-                themove = Movement(self, len(self.movements), start, self.end_point, line_ref, name = "Movement " + str(len(self.movements)+1))
+                themove = Movement(self, len(self.movements), start, endpoint, line_ref, name = "Movement " + str(len(self.movements)+1))
                 s = SidebarGroup(themove, self, len(self.sidebar_groups), speed=speed, flags=data)
 
                 # Set the movements speed to the parsed speed
@@ -511,6 +512,8 @@ class Window:
 
                 # Reset start to endpoint to chain movements
                 start = endpoint
+        
+        self.sidebar_selection_index = -1
 
     def remove_movement(self, movement):
         ind = movement.index
