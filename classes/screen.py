@@ -457,7 +457,7 @@ class Window:
                 data = "".join(l[l.index("(") : l.index(")")].split())
 
                 # Get endpoint data of odom movement
-                pos = data[data.index("{")+1 : data.index("}")].split(",")
+                pos = data[data.index("{")+2 : data.index("}")].split(",")
 
                 # Remove endpoint part from 'data'
                 data = data[data.index("},")+2:]
