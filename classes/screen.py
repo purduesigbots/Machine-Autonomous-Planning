@@ -135,7 +135,6 @@ class Window:
     def switch_selection(self, new_index):
         # if the current selected index exists, then deselect it
         if self.sidebar_selection_index != -1:
-            print(self.sidebar_selection_index)
             self.sidebar_groups[self.sidebar_selection_index].deselect()
         
         # if the new index exists, then select it
@@ -172,25 +171,19 @@ class Window:
             if self.grid.get():
                 # find grid square size in pizels
                 g = SCREEN_HEIGHT / 6 / 24 * GRID_SIZE
-                print("g", g)
 
                 # find position in interval and round to nearest grid point
                 x_mod = fmod(x, g)
-                print("x_mod", x_mod)
                 if x_mod >= g / 2:
                     x = x - x_mod + g
                 else:
                     x = x - x_mod
-                print("x", x)
 
                 y_mod = fmod(y, g)
-                print("y_mod", y_mod)
                 if y_mod >= g / 2:
                     y = y - y_mod + g
                 else:
                     y = y - y_mod
-                print("y", y)
-
             try:
                 self.canvas.delete(self.next_temp_line)
                 self.canvas.delete(self.prev_temp_line)
@@ -314,9 +307,6 @@ class Window:
                 # reset editing values
                 self.editing_movement = 0
                 self.editing_index = -1
-        # if mouse click is not on field
-        else:
-            print("Outside field")
 
     # mouse motion input handler
     def motion_handler(self, event):
