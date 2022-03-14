@@ -375,7 +375,7 @@ class Window:
             os.mkdir("output")
         f = open("output/script.cpp", "w")
         if(len(self.movements) > 0):
-            f.write("// Reset odom\n")
+            f.write("//Scope in ARMS\nusing namespace arms;\n\n// Reset odom\n")
             f.write(
                 f'odom::reset({{{c.convert_x(self.movements[0].start[0])}, {c.convert_y(self.movements[0].start[1])}}});\n')
             f.write("\n")
