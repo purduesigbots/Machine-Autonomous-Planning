@@ -1,19 +1,18 @@
 # import statements
+from abc import abstractmethod
 from classes.converter import Converter as c
 from classes.constants import DARK_MODE_BG, DARK_MODE_FG, LIGHT_MODE_BG, LIGHT_MODE_FG, SELECTED_COLOR
 import tkinter as tk
 import math
 
-# Movement class encapsulates code associated with movements
+# Movement class encapsulates code associated with linear movements
 class Movement:
 
-    def __init__(self, owner, index, start, end, line_ref, name="Movement"):
+    def __init__(self, owner, index, name):
         # initialize variables
         self.owner = owner
         self.index = index
-        self.line_ref = line_ref
-        self.start = start
-        self.end = end
+        self.name = name
         self.options = {
             "speed": 100,
             "flags": {
@@ -23,8 +22,48 @@ class Movement:
                 "arms::THRU": False,
             }
         }
-        self.name = name
+
         self.selected = False
+    
+    # handles mouse click input for movement
+    @abstractmethod
+    def click_handler(self, event):
+        pass
+
+    # clear arrow from canvas
+    @abstractmethod
+    def clear(self):
+        pass
+
+    # draw arrow on canvas
+    @abstractmethod
+    def draw(self):
+        pass
+    
+    # set the speed to val
+    def set_speed(self, val):
+        self.options["speed"] = val
+    
+    # get name as comment
+    def get_name_as_cmt(self):
+        return f'// {self.name}\n'
+    
+    # get string for exporting to script
+    @abstractmethod
+    def to_string(self):
+        pass
+
+# Linear class encapsulates code associated specifically with linear movements
+class Linear(Movement):
+
+    def __init__(self, owner, index, name, start, end, line_ref):
+        # call super
+        super().__init__(owner, index, name)
+
+        # initialize variables
+        self.start = start
+        self.end = end
+        self.line_ref = line_ref
 
         # bind click handler to line_ref tag
         self.owner.canvas.tag_bind(self.line_ref, "<Button-1>", self.click_handler)
@@ -63,10 +102,6 @@ class Movement:
     # set the speed to val
     def set_speed(self, val):
         self.options["speed"] = val
-    
-    # toggle async value
-    def toggle_async(self):
-        self.options["flags"]["arms::ASYNC"] = not self.options["flags"]["arms::ASYNC"]
     
     # get name as comment
     def get_name_as_cmt(self):

@@ -1,5 +1,5 @@
 # import statements
-from classes.movement import Movement, SidebarGroup
+from classes.movement import Linear, SidebarGroup
 from classes.converter import Converter as c
 from classes.constants import *
 import tkinter as tk
@@ -217,7 +217,7 @@ class Window:
                 if self.movements:
                     prev_movement_count = int(self.movements[len(self.movements)-1].name.split(" ")[1])
                 
-                m = Movement(self, len(self.movements), self.start_point, self.end_point, line_ref, name="Movement {}".format(prev_movement_count + 1))
+                m = Linear(self, len(self.movements), "Movement {}".format(prev_movement_count + 1), self.start_point, self.end_point, line_ref)
                 s = SidebarGroup(m, self, len(self.sidebar_groups))
 
                 self.movements.append(m)
@@ -495,7 +495,7 @@ class Window:
                 line_ref = self.canvas.create_line(start[0], start[1], endpoint[0], endpoint[1], 
                                      fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
                 
-                themove = Movement(self, len(self.movements), start, endpoint, line_ref, name = "Movement " + str(len(self.movements)+1))
+                themove = Linear(self, len(self.movements), "Movement " + str(len(self.movements)+1), start, endpoint, line_ref)
                 s = SidebarGroup(themove, self, len(self.sidebar_groups), speed=speed, flags=data)
 
                 # Set the movements speed to the parsed speed
