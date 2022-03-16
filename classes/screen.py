@@ -13,6 +13,7 @@ class Window:
 
     def __init__(self, root, canvas):
         # initialize variables
+        self.mode = "movement"
         self.creating_movement = False
         self.start_point = (0, 0)
         self.end_point = (0, 0)
@@ -84,8 +85,10 @@ class Window:
 
         # bind keyboard input to key_handler callback
         self.root.bind("<Key>", self.key_handler)
-        # bind mouse button input to click_handler callback
-        self.canvas.bind("<Button>", self.click_handler)
+        # bind mouse left button input to click handler callback
+        self.canvas.bind("<Button-1>", self.left_click_handler)
+        # bind mouse right button input to click handler callback
+        self.canvas.bind("<Button-3>", self.right_click_handler)
         # bind mouse motion input to motion_handler callback
         self.canvas.bind("<Motion>", self.motion_handler)
 
@@ -158,8 +161,8 @@ class Window:
         elif event.keysym == "i":
             self.import_script()
 
-    # mouse click input handler
-    def click_handler(self, event):
+    # mouse left click input handler
+    def left_click_handler(self, event):
         # if mouse click is on field
         if event.x < SCREEN_HEIGHT:
 
@@ -307,6 +310,15 @@ class Window:
                 # reset editing values
                 self.editing_movement = 0
                 self.editing_index = -1
+    
+    # mouse right click input handler
+    def right_click_handler(self, event):
+        if self.mode == "movement":
+            self.mode = "turning"
+        elif self.mode == "turning":
+            self.mode = "movement"
+        
+        print(self.mode)
 
     # mouse motion input handler
     def motion_handler(self, event):
@@ -526,3 +538,5 @@ class Window:
 
         for n in range(len(self.sidebar_groups)):
             self.sidebar_groups[n].index = n
+        
+        self.sidebar_selection_index = -1

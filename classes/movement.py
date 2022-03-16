@@ -19,7 +19,7 @@ class Movement:
             "flags": {
                 "arms::ASYNC": False,
                 "arms::RELATIVE": False,
-                "arms::BACKWARDS": False,
+                "arms::REVERSE": False,
                 "arms::THRU": False,
             }
         }
@@ -123,15 +123,15 @@ class SidebarGroup:
             self.relative_flag.set(True)
             self.relative_checkbox.select()
 
-        # create backwards flag variable and checkbutton
-        self.backwards_flag = tk.BooleanVar()
-        self.backwards_checkbox = tk.Checkbutton(self.frame, text="BACKWARDS", variable=self.backwards_flag, onvalue=True, offvalue=False, command=self.set_flags)
-        self.backwards_checkbox.grid(row=1, column=2, columnspan=1)
+        # create reverse flag variable and checkbutton
+        self.reverse_flag = tk.BooleanVar()
+        self.reverse_checkbox = tk.Checkbutton(self.frame, text="REVERSE", variable=self.reverse_flag, onvalue=True, offvalue=False, command=self.set_flags)
+        self.reverse_checkbox.grid(row=1, column=2, columnspan=1)
 
-        # if imported movement has backwards flag, set to true
-        if "arms::BACKWARDS" in flags:
-            self.backwards_flag.set(True)
-            self.backwards_checkbox.select()
+        # if imported movement has reverse flag, set to true
+        if "arms::REVERSE" in flags:
+            self.reverse_flag.set(True)
+            self.reverse_checkbox.select()
 
         # create thru flag variable and checkbutton
         self.thru_flag = tk.BooleanVar()
@@ -168,7 +168,7 @@ class SidebarGroup:
     def set_flags(self):
         self.movement.options["flags"]["arms::ASYNC"] = self.async_flag.get()
         self.movement.options["flags"]["arms::RELATIVE"] = self.relative_flag.get()
-        self.movement.options["flags"]["arms::BACKWARDS"] = self.backwards_flag.get()
+        self.movement.options["flags"]["arms::REVERSE"] = self.reverse_flag.get()
         self.movement.options["flags"]["arms::THRU"] = self.thru_flag.get()
     
     # select sidebar and movement
@@ -220,10 +220,10 @@ class SidebarGroup:
             self.relative_checkbox.configure(fg=DARK_MODE_FG)
             self.relative_checkbox.configure(selectcolor=DARK_MODE_BG)
             self.relative_checkbox.configure(activebackground=DARK_MODE_BG)
-            self.backwards_checkbox.configure(bg=DARK_MODE_BG)
-            self.backwards_checkbox.configure(fg=DARK_MODE_FG)
-            self.backwards_checkbox.configure(selectcolor=DARK_MODE_BG)
-            self.backwards_checkbox.configure(activebackground=DARK_MODE_BG)
+            self.reverse_checkbox.configure(bg=DARK_MODE_BG)
+            self.reverse_checkbox.configure(fg=DARK_MODE_FG)
+            self.reverse_checkbox.configure(selectcolor=DARK_MODE_BG)
+            self.reverse_checkbox.configure(activebackground=DARK_MODE_BG)
             self.thru_checkbox.configure(bg=DARK_MODE_BG)
             self.thru_checkbox.configure(fg=DARK_MODE_FG)
             self.thru_checkbox.configure(selectcolor=DARK_MODE_BG)
@@ -244,10 +244,10 @@ class SidebarGroup:
             self.relative_checkbox.configure(fg=LIGHT_MODE_FG)
             self.relative_checkbox.configure(selectcolor=LIGHT_MODE_BG)
             self.relative_checkbox.configure(activebackground=LIGHT_MODE_BG)
-            self.backwards_checkbox.configure(bg=LIGHT_MODE_BG)
-            self.backwards_checkbox.configure(fg=LIGHT_MODE_FG)
-            self.backwards_checkbox.configure(selectcolor=LIGHT_MODE_BG)
-            self.backwards_checkbox.configure(activebackground=LIGHT_MODE_BG)
+            self.reverse_checkbox.configure(bg=LIGHT_MODE_BG)
+            self.reverse_checkbox.configure(fg=LIGHT_MODE_FG)
+            self.reverse_checkbox.configure(selectcolor=LIGHT_MODE_BG)
+            self.reverse_checkbox.configure(activebackground=LIGHT_MODE_BG)
             self.thru_checkbox.configure(bg=LIGHT_MODE_BG)
             self.thru_checkbox.configure(fg=LIGHT_MODE_FG)
             self.thru_checkbox.configure(selectcolor=LIGHT_MODE_BG)
