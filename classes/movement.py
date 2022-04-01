@@ -99,18 +99,47 @@ class Linear(Movement):
         # rebind click handler
         self.owner.canvas.tag_bind(self.line_ref, "<Button-1>", self.click_handler)
     
-    # set the speed to val
-    def set_speed(self, val):
-        self.options["speed"] = val
-    
-    # get name as comment
-    def get_name_as_cmt(self):
-        return f'// {self.name}\n'
-    
     # get string for exporting to script
     def to_string(self):
         joined_flags = " | ".join([f for f in self.options["flags"] if self.options["flags"][f]])
         return f'chassis::move({{{{{c.convert_x(self.end[0])}, {c.convert_y(self.end[1])}}}}}, {self.options["speed"]}{", " + joined_flags if len(joined_flags) > 0 else ""});\n'
+
+# Linear class encapsulates code associated specifically with angular movements
+class Angular(Movement):
+
+    def __init__(self, owner, index, name, origin, angle, line_ref):
+        # call super
+        super().__init__(owner, index, name)
+
+        # initialize variables
+        self.origin = origin
+        self.angle = angle
+        self.line_ref = line_ref
+
+        # bind click handler to line_ref tag
+        self.owner.canvas.tag_bind(self.line_ref, "<Button-1>", self.click_handler)
+    
+    # handles mouse click input for movement
+    def click_handler(self, event):
+        print("Clicked")
+
+    # clear arrow from canvas
+    def clear(self):
+        self.owner.canvas.delete(self.line_ref)
+
+    # draw arrow on canvas
+    def draw(self):
+        line_fill = "purple" if self.selected else "pink"
+        self.line_ref = self.owner.canvas.create_line(self.start[0], self.start[1], self.end[0], self.end[1], 
+                                     fill=line_fill, width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+        
+        # rebind click handler
+        self.owner.canvas.tag_bind(self.line_ref, "<Button-1>", self.click_handler)
+    
+    # get string for exporting to script
+    def to_string(self):
+        joined_flags = " | ".join([f for f in self.options["flags"] if self.options["flags"][f]])
+        return f'chassis::turn({self.angle}, {self.options["speed"]}{", " + joined_flags if len(joined_flags) > 0 else ""});\n'
 
 # SidebarGroup class encapsulates sidebar widget groups
 class SidebarGroup:
