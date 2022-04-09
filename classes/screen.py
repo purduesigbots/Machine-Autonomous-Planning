@@ -1,12 +1,12 @@
 # import statements
-from classes.movement import Linear, SidebarGroup
+from classes.movement import Linear, SidebarGroup, Angular
 from classes.converter import Converter as c
 from classes.constants import *
 import tkinter as tk
 from tkinter import ttk
 import sys
 import os
-from math import fmod
+from math import fmod, atan2, pi
 
 # Window class encapsulates main logic
 class Window:
@@ -17,6 +17,9 @@ class Window:
         self.creating_movement = False
         self.start_point = (0, 0)
         self.end_point = (0, 0)
+        self.origin = (0, 0)
+        self.start_angle = 0
+        self.extent = 0
         self.editing_movement = 0
         self.editing_index = -1
         self.root = root
@@ -198,32 +201,62 @@ class Window:
                 if self.editing_movement == 0:
                     # set creating movement to true and store starting point
                     self.creating_movement = True
+
                     #Link start of new movement to previous movement for one continuous path
                     if self.movements:
                         self.start_point = self.movements[len(self.movements)-1].end
+                        self.origin = self.movements[len(self.movements)-1].end
+
+                        prev = self.movements[len(self.movements) - 1]
+                        
+                        self.start_angle = atan2(prev.start[1] - prev.end[1], prev.end[0] - prev.start[0]) * 180 / pi
+                        if self.start_angle < 0:
+                            self.start_angle += 360
                     else:
                         self.start_point = (x, y)
-                    # if not first click
+                        self.origin = (x, y)
+                        self.start_angle = 90
+                    
+            # if not first click
             else:
                 # set creating movement to false and store end point
                 self.end_point = (x, y)
-
-                # create line between start and end point
-                line_ref = self.canvas.create_line(self.start_point, self.end_point, 
-                                     fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
 
                 # Keep incrementing based off previous movement's name
                 prev_movement_count = 0
                 if self.movements:
                     prev_movement_count = int(self.movements[len(self.movements)-1].name.split(" ")[1])
                 
-                m = Linear(self, len(self.movements), "Movement {}".format(prev_movement_count + 1), self.start_point, self.end_point, line_ref)
+                if self.mode == "movement":
+                    # create line between start and end point
+                    line_ref = self.canvas.create_line(self.start_point, self.end_point, 
+                                     fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+
+                    m = Linear(self, len(self.movements), "Movement {}".format(prev_movement_count + 1), self.start_point, self.end_point, line_ref)
+                else:
+                    line_ref = self.canvas.create_arc(self.origin[0] - 20, self.origin[1] - 20, self.origin[0] + 20, self.origin[1] + 20,
+                                     outline="magenta", start=self.start_angle, extent=self.extent, width=5, style=tk.ARC)
+
+                    m = Angular(self, len(self.movements), "Movement {}".format(prev_movement_count + 1), self.origin, self.start_angle, self.extent, line_ref)
+
                 s = SidebarGroup(m, self, len(self.sidebar_groups))
 
                 self.movements.append(m)
                 self.sidebar_groups.append(s)
 
-                self.start_point = self.end_point
+                prev = self.movements[len(self.movements) - 1]        
+
+                if self.mode == "movement":
+                    self.start_point = self.end_point
+                    self.origin = self.end_point
+                    
+                    self.start_angle = atan2(prev.start[1] - prev.end[1], prev.end[0] - prev.start[0]) * 180 / pi
+                    if self.start_angle < 0:
+                        self.start_angle += 360
+                else:
+                    self.start_point = prev.origin
+                    self.origin = prev.origin
+                    self.mode = "movement"
             
             # if editing end point and on dummy click, decrement
             if self.editing_movement == 2:
@@ -317,8 +350,6 @@ class Window:
             self.mode = "turning"
         elif self.mode == "turning":
             self.mode = "movement"
-        
-        print(self.mode)
 
     # mouse motion input handler
     def motion_handler(self, event):
@@ -368,9 +399,21 @@ class Window:
             # delete the current temp line
             self.canvas.delete(self.temp_line)
 
-            # create a new temp line between start point and current mouse position
-            self.temp_line = self.canvas.create_line(self.start_point, (event.x, event.y), 
+            if self.mode == "movement":
+                # create a new temp line between start point and current mouse position
+                self.temp_line = self.canvas.create_line(self.start_point, (event.x, event.y), 
                                                fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+            elif self.mode == "turning":
+                self.extent = atan2(self.origin[1] - event.y, event.x - self.origin[0]) * 180 / pi
+                self.extent -= self.start_angle
+                if self.extent > 180:
+                    self.extent -= 360
+                if self.extent < -180:
+                    self.extent += 360
+
+                self.temp_line = self.canvas.create_arc(self.origin[0] - 20, self.origin[1] - 20, self.origin[0] + 20, self.origin[1] + 20,
+                                     outline="magenta", start=self.start_angle, extent=self.extent, width=5, style=tk.ARC)
+
 
     # Export path as cpp script
     def export_script(self):

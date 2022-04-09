@@ -107,13 +107,14 @@ class Linear(Movement):
 # Linear class encapsulates code associated specifically with angular movements
 class Angular(Movement):
 
-    def __init__(self, owner, index, name, origin, angle, line_ref):
+    def __init__(self, owner, index, name, origin, start_angle, extent, line_ref):
         # call super
         super().__init__(owner, index, name)
 
         # initialize variables
         self.origin = origin
-        self.angle = angle
+        self.start_angle = start_angle
+        self.extent = extent
         self.line_ref = line_ref
 
         # bind click handler to line_ref tag
@@ -129,9 +130,9 @@ class Angular(Movement):
 
     # draw arrow on canvas
     def draw(self):
-        line_fill = "purple" if self.selected else "pink"
-        self.line_ref = self.owner.canvas.create_line(self.start[0], self.start[1], self.end[0], self.end[1], 
-                                     fill=line_fill, width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+        line_fill = "magenta"
+        self.line_ref = self.owner.canvas.create_arc(self.origin[0] - 20, self.origin[1] - 20, self.origin[0] + 20, self.origin[1] + 20,
+                                     outline=line_fill, extent=self.extent, width=5, style=tk.ARC)
         
         # rebind click handler
         self.owner.canvas.tag_bind(self.line_ref, "<Button-1>", self.click_handler)
@@ -139,7 +140,7 @@ class Angular(Movement):
     # get string for exporting to script
     def to_string(self):
         joined_flags = " | ".join([f for f in self.options["flags"] if self.options["flags"][f]])
-        return f'chassis::turn({self.angle}, {self.options["speed"]}{", " + joined_flags if len(joined_flags) > 0 else ""});\n'
+        return f'chassis::turn({self.extent}, {self.options["speed"]}{", " + joined_flags if len(joined_flags) > 0 else ""});\n'
 
 # SidebarGroup class encapsulates sidebar widget groups
 class SidebarGroup:
