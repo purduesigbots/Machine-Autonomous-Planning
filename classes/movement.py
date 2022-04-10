@@ -122,7 +122,13 @@ class Angular(Movement):
     
     # handles mouse click input for movement
     def click_handler(self, event):
-        print("Clicked")
+        # if the movement is selected and the canvas is not editing
+        if self.selected and self.owner.editing_movement == 0:
+            self.owner.editing_movement = 2
+
+            # set index and clear current line
+            self.owner.editing_index = self.index
+            self.clear()
 
     # clear arrow from canvas
     def clear(self):
@@ -140,7 +146,7 @@ class Angular(Movement):
     # get string for exporting to script
     def to_string(self):
         joined_flags = " | ".join([f for f in self.options["flags"] if self.options["flags"][f]])
-        return f'chassis::turn({self.extent}, {self.options["speed"]}{", " + joined_flags if len(joined_flags) > 0 else ""});\n'
+        return f'chassis::turn({round(self.extent, 2)}, {self.options["speed"]}{", " + joined_flags if len(joined_flags) > 0 else ""});\n'
 
 # SidebarGroup class encapsulates sidebar widget groups
 class SidebarGroup:

@@ -262,45 +262,49 @@ class Window:
             if self.editing_movement == 2:
                 self.editing_movement = 1
 
-                if self.editing_index < len(self.movements) - 1:
-                    self.next_temp_line = self.movements[self.editing_index + 1].line_ref
+                if self.mode == "movement":
+                    if self.editing_index < len(self.movements) - 1:
+                        self.next_temp_line = self.movements[self.editing_index + 1].line_ref
             # if editing end point and on actual click
             elif self.editing_movement == 1:
                 # delete temp line
                 self.canvas.delete(self.temp_line)
 
-                # create end point
-                self.end_point = (x, y)
-
-                # create line between start and end point
-                line_ref = self.canvas.create_line(self.start_point, self.end_point, 
-                                     fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
-                
-                # edit end position for selected movement
-                self.movements[self.editing_index].end = self.end_point
-                self.movements[self.editing_index].line_ref = line_ref
-
-                # rebind tag
-                self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index].click_handler)
-
-                # edit start posititon for next movement in chain
-                if self.editing_index + 1 < len(self.movements):
-                    self.movements[self.editing_index + 1].clear()
-                    self.movements[self.editing_index + 1].start = self.end_point
+                if self.mode == "movement":
+                    # create end point
+                    self.end_point = (x, y)
 
                     # create line between start and end point
-                    line_ref = self.canvas.create_line(self.end_point, self.movements[self.editing_index + 1].end, 
-                                     fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
-
-                    self.movements[self.editing_index + 1].line_ref = line_ref
+                    line_ref = self.canvas.create_line(self.start_point, self.end_point, 
+                                         fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+                
+                    # edit end position for selected movement
+                    self.movements[self.editing_index].end = self.end_point
+                    self.movements[self.editing_index].line_ref = line_ref
 
                     # rebind tag
-                    self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index + 1].click_handler)
+                    self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index].click_handler)
+
+                    # edit start posititon for next movement in chain
+                    if self.editing_index + 1 < len(self.movements):
+                        self.movements[self.editing_index + 1].clear()
+                        self.movements[self.editing_index + 1].start = self.end_point
+
+                        # create line between start and end point
+                        line_ref = self.canvas.create_line(self.end_point, self.movements[self.editing_index + 1].end, 
+                                         fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+
+                        self.movements[self.editing_index + 1].line_ref = line_ref
+
+                        # rebind tag
+                        self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index + 1].click_handler)
 
 
-                # reset editing values
-                self.editing_movement = 0
-                self.editing_index = -1
+                    # reset editing values
+                    self.editing_movement = 0
+                    self.editing_index = -1
+                else:
+                    pass
             
             # if editing start point and on dummy click, decrement
             if self.editing_movement == -2:
@@ -346,10 +350,11 @@ class Window:
     
     # mouse right click input handler
     def right_click_handler(self, event):
-        if self.mode == "movement":
-            self.mode = "turning"
-        elif self.mode == "turning":
-            self.mode = "movement"
+        if self.editing_movement == 0:
+            if self.mode == "movement":
+                self.mode = "turning"
+            elif self.mode == "turning":
+                self.mode = "movement"
 
     # mouse motion input handler
     def motion_handler(self, event):
