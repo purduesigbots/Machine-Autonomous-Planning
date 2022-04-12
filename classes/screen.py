@@ -49,8 +49,8 @@ class Window:
         file = tk.Menu(self.root, tearoff=False)
 
         # add import, export, clear
-        file.add_command(label = "Import", command=self.import_script)
-        file.add_command(label = "Export", command=self.export_script)
+        file.add_command(label = "Import", command=self.choose_import_script)
+        file.add_command(label = "Export", command=self.export_script_name)
         file.add_command(label = "Clear", command= self.clear)
 
         # attach file submenu to main menu bar
@@ -369,11 +369,30 @@ class Window:
             self.temp_line = self.canvas.create_line(self.start_point, (event.x, event.y), 
                                                fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
 
+    def export_script_name(self):
+        top = tk.Toplevel(self.root)
+  
+        # TextBox Creation
+        inputtxt = tk.Text(top,
+                   height = 5,
+                   width = 20)
+  
+        inputtxt.pack()
+  
+        # Button Creation
+        printButton = tk.Button(top,
+                        text = "Print", 
+                        command = lambda: self.export_script(inputtxt.get(1.0, "end-1c")))
+        printButton.pack()
+  
     # Export path as cpp script
-    def export_script(self):
+    def export_script(self, file_name):
         if not os.path.exists("output"):
             os.mkdir("output")
-        f = open("output/script.cpp", "w")
+        if not file_name.endswith(".cpp"):
+            file_name += ".cpp"
+
+        f = open(os.path.join("output", file_name), "w")
         if(len(self.movements) > 0):
             f.write("// Reset odom\n")
             f.write(
@@ -411,11 +430,31 @@ class Window:
         # set dark mode
         self.set_darkmode()
 
-    def import_script(self):
+    def choose_import_script(self):
+        onlyfiles = [f for f in os.listdir(os.path.normpath("output")) if os.path.isfile(os.path.join("output", f))]
+        if len(onlyfiles) == 0:
+            print("Error Importing: There is no script in the output folder")
+            sys.exit()
+        elif len(onlyfiles) == 1:
+            self.import_script(onlyfiles[0])
+            return
+        top = tk.Toplevel(self.root)
+
+        # create a listbox to display all the files in the output folder
+        listbox = tk.Listbox(top, selectmode=tk.SINGLE)
+        listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        for f in onlyfiles:
+            listbox.insert(tk.END, f)
+
+        # create a button to import the selected file
+        btn = tk.Button(top, text="Import", command=lambda: self.import_script(listbox.get(tk.ACTIVE)))
+        btn.pack(side=tk.RIGHT)
+
+    def import_script(self, file="script.cpp"):
         self.clear()
 
         # Check if the script.cpp file exists
-        if not os.path.isfile(os.path.join("output","script.cpp")):
+        if not os.path.isfile(os.path.join("output",file)):
             try:
                 os.mkdir("output")
             except:
@@ -424,7 +463,7 @@ class Window:
             sys.exit()
 
         # Open the script
-        f = open("output/script.cpp","r")
+        f = open(os.path.join("output", file),"r")
 
         start = None # Starting point based on odom::reset
         allLines = f.readlines() # Read the script
