@@ -8,7 +8,7 @@ from classes.constants import SCREEN_HEIGHT, SCREEN_WIDTH
 root = tk.Tk()
 
 # set window title and size
-root.title("Visual Auton Generator v0.1")
+root.title("Machine Autonomous Planner v0.1")
 root.geometry("{0}x{1}+50+0".format(SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # create field image from assets and resize

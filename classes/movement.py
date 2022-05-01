@@ -136,9 +136,9 @@ class Angular(Movement):
 
     # draw arrow on canvas
     def draw(self):
-        line_fill = "magenta"
+        line_fill = "red" if self.selected else "magenta"
         self.line_ref = self.owner.canvas.create_arc(self.origin[0] - 20, self.origin[1] - 20, self.origin[0] + 20, self.origin[1] + 20,
-                                     outline=line_fill, extent=self.extent, width=5, style=tk.ARC)
+                                     outline=line_fill, start=self.start_angle, extent=self.extent, width=5, style=tk.ARC)
         
         # rebind click handler
         self.owner.canvas.tag_bind(self.line_ref, "<Button-1>", self.click_handler)
