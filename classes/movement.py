@@ -101,8 +101,20 @@ class Linear(Movement):
     
     # get string for exporting to script
     def to_string(self):
+        x = c.convert_x(self.end[0])
+        y = c.convert_y(self.end[1])
+
+        # if movement is relative
+        if self.options["flags"]["arms::RELATIVE"]:
+            start_x = c.convert_x(self.start[0])
+            start_y = c.convert_y(self.start[1])
+
+            # make the x and y the difference between end and start
+            x -= start_x
+            y -= start_y
+
         joined_flags = " | ".join([f for f in self.options["flags"] if self.options["flags"][f]])
-        return f'chassis::move({{{{{c.convert_x(self.end[0])}, {c.convert_y(self.end[1])}}}}}, {self.options["speed"]}{", " + joined_flags if len(joined_flags) > 0 else ""});\n'
+        return f'chassis::move({{{{{round(x, 2)}, {round(y, 2)}}}}}, {self.options["speed"]}{", " + joined_flags if len(joined_flags) > 0 else ""});\n'
 
 # Linear class encapsulates code associated specifically with angular movements
 class Angular(Movement):
@@ -145,8 +157,13 @@ class Angular(Movement):
     
     # get string for exporting to script
     def to_string(self):
+        if self.options["flags"]["arms::RELATIVE"]:
+            angle = self.extent
+        else:
+            angle = self.start_angle + self.extent
+
         joined_flags = " | ".join([f for f in self.options["flags"] if self.options["flags"][f]])
-        return f'chassis::turn({round(self.start_angle + self.extent, 2)}, {self.options["speed"]}{", " + joined_flags if len(joined_flags) > 0 else ""});\n'
+        return f'chassis::turn({round(angle, 2)}, {self.options["speed"]}{", " + joined_flags if len(joined_flags) > 0 else ""});\n'
 
 # SidebarGroup class encapsulates sidebar widget groups
 class SidebarGroup:

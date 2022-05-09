@@ -468,18 +468,19 @@ class Window:
             f.write("\n")
         f.close()
 
-        # pop up modal to alert user that script was exported
-        top = tk.Toplevel(self.root)
-        top.title("Export")
-        tk.Label(top, text= "Exported script", font=('Arial 18 bold')).pack(side=tk.TOP)
-
         # copy exported script to clipboard
-        f = open("output/script.cpp","r")
+        f = open(os.path.join("output", file_name), "r")
         lines = f.readlines()
         self.root.clipboard_clear()
         for l in lines:
             self.root.clipboard_append(l)
         f.close()
+
+        # pop up modal to alert user that script was exported
+        top = tk.Toplevel(self.root)
+        top.title("Export")
+        tk.Label(top, text= "Exported script", font=('Arial 18 bold')).pack(side=tk.TOP)
+        tk.Label(top, text= "Copied to clipboard", font=('Arial 18 bold')).pack(side=tk.TOP)
 
     
     # clear the field
