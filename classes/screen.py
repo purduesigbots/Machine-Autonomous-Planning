@@ -621,7 +621,8 @@ class Window:
         ind = movement.index
         if ind > 0 and ind < len(self.movements)-1:
             self.movements[ind+1].clear()
-            self.movements[ind+1].start = self.movements[ind].start
+            if type(self.movements[ind]) is Linear:
+                self.movements[ind+1].start = self.movements[ind].start
         self.movements[ind].clear()
         self.movements.pop(ind)
 
