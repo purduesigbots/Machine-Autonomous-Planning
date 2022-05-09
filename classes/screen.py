@@ -4,6 +4,7 @@ from classes.converter import Converter as c
 from classes.constants import *
 import tkinter as tk
 from tkinter import ttk
+import re
 import sys
 import os
 from math import fmod
@@ -25,6 +26,7 @@ class Window:
         self.next_temp_line = None
         self.movements = []
         self.sidebar_groups = []
+        self.filename = tk.StringVar()
 
         # create scrollable canvas for sidebar
         self.sidebar_canvas = tk.Canvas(root, width=SIDEBAR_WIDTH, height=SCREEN_HEIGHT)
@@ -153,7 +155,7 @@ class Window:
             self.end_point = (0, 0)
         # if e is hit, export
         elif event.keysym == "e":
-            self.export_script()
+            self.export_script_name()
         # if i is hit, import
         elif event.keysym == "i":
             self.import_script()
@@ -371,19 +373,20 @@ class Window:
 
     def export_script_name(self):
         top = tk.Toplevel(self.root)
-  
+        top.title("Export")
+        label = tk.Label(top, text="Export As...")
+        
         # TextBox Creation
-        inputtxt = tk.Text(top,
-                   height = 5,
-                   width = 20)
+        inputtxt = tk.Entry(top, textvariable=self.filename)
   
-        inputtxt.pack()
+        label.grid(row=0, column=0)
+        inputtxt.grid(row=0, column=1)
   
         # Button Creation
         printButton = tk.Button(top,
                         text = "Print", 
-                        command = lambda: self.export_script(inputtxt.get(1.0, "end-1c")))
-        printButton.pack()
+                        command = lambda: self.export_script(self.filename.get()))
+        printButton.grid(row=1, column=0, columnspan=2)
   
     # Export path as cpp script
     def export_script(self, file_name):
@@ -392,7 +395,16 @@ class Window:
         if not file_name.endswith(".cpp"):
             file_name += ".cpp"
 
-        f = open(os.path.join("output", file_name), "w")
+        try:
+            f = open(os.path.join("output", file_name), "w")
+        except PermissionError:
+            # pop up modal to alert user that script was exported
+            top = tk.Toplevel(self.root)
+            top.title("Export")
+            tk.Label(top, text= "Failed to export script", font=('Arial 18 bold')).pack(side=tk.TOP)
+            tk.Label(top, text= "Ensure filepath is valid", font=('Arial 18 bold')).pack(side=tk.TOP)
+            return
+
         if(len(self.movements) > 0):
             f.write("// Reset odom\n")
             f.write(
