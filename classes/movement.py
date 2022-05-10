@@ -1,30 +1,69 @@
 # import statements
+from abc import abstractmethod
 from classes.converter import Converter as c
 from classes.constants import DARK_MODE_BG, DARK_MODE_FG, LIGHT_MODE_BG, LIGHT_MODE_FG, SELECTED_COLOR
 import tkinter as tk
 import math
 
-# Movement class encapsulates code associated with movements
+# Movement class encapsulates code associated with linear movements
 class Movement:
 
-    def __init__(self, owner, index, start, end, line_ref, name="Movement"):
+    def __init__(self, owner, index, name):
         # initialize variables
         self.owner = owner
         self.index = index
-        self.line_ref = line_ref
-        self.start = start
-        self.end = end
+        self.name = name
         self.options = {
             "speed": 100,
             "flags": {
                 "arms::ASYNC": False,
                 "arms::RELATIVE": False,
-                "arms::BACKWARDS": False,
+                "arms::REVERSE": False,
                 "arms::THRU": False,
             }
         }
-        self.name = name
+
         self.selected = False
+    
+    # handles mouse click input for movement
+    @abstractmethod
+    def click_handler(self, event):
+        pass
+
+    # clear arrow from canvas
+    @abstractmethod
+    def clear(self):
+        pass
+
+    # draw arrow on canvas
+    @abstractmethod
+    def draw(self):
+        pass
+    
+    # set the speed to val
+    def set_speed(self, val):
+        self.options["speed"] = val
+    
+    # get name as comment
+    def get_name_as_cmt(self):
+        return f'// {self.name}\n'
+    
+    # get string for exporting to script
+    @abstractmethod
+    def to_string(self):
+        pass
+
+# Linear class encapsulates code associated specifically with linear movements
+class Linear(Movement):
+
+    def __init__(self, owner, index, name, start, end, line_ref):
+        # call super
+        super().__init__(owner, index, name)
+
+        # initialize variables
+        self.start = start
+        self.end = end
+        self.line_ref = line_ref
 
         # bind click handler to line_ref tag
         self.owner.canvas.tag_bind(self.line_ref, "<Button-1>", self.click_handler)
@@ -60,22 +99,72 @@ class Movement:
         # rebind click handler
         self.owner.canvas.tag_bind(self.line_ref, "<Button-1>", self.click_handler)
     
-    # set the speed to val
-    def set_speed(self, val):
-        self.options["speed"] = val
+    # get string for exporting to script
+    def to_string(self):
+        x = c.convert_x(self.end[0])
+        y = c.convert_y(self.end[1])
+
+        # if movement is relative
+        if self.options["flags"]["arms::RELATIVE"]:
+            start_x = c.convert_x(self.start[0])
+            start_y = c.convert_y(self.start[1])
+
+            # make the x and y the difference between end and start
+            x -= start_x
+            y -= start_y
+
+        joined_flags = " | ".join([f for f in self.options["flags"] if self.options["flags"][f]])
+        return f'chassis::move({{{{{round(x, 2)}, {round(y, 2)}}}}}, {self.options["speed"]}{", " + joined_flags if len(joined_flags) > 0 else ""});\n'
+
+# Linear class encapsulates code associated specifically with angular movements
+class Angular(Movement):
+
+    def __init__(self, owner, index, name, origin, start_angle, extent, line_ref):
+        # call super
+        super().__init__(owner, index, name)
+
+        # initialize variables
+        self.origin = origin
+        self.start_angle = start_angle
+        self.extent = extent
+        self.line_ref = line_ref
+
+        # bind click handler to line_ref tag
+        self.owner.canvas.tag_bind(self.line_ref, "<Button-1>", self.click_handler)
     
-    # toggle async value
-    def toggle_async(self):
-        self.options["flags"]["arms::ASYNC"] = not self.options["flags"]["arms::ASYNC"]
-    
-    # get name as comment
-    def get_name_as_cmt(self):
-        return f'// {self.name}\n'
+    # handles mouse click input for movement
+    def click_handler(self, event):
+        # if the movement is selected and the canvas is not editing
+        if self.selected and self.owner.editing_movement == 0:
+            self.owner.editing_movement = 2
+
+            # set index and clear current line
+            self.owner.editing_index = self.index
+            self.clear()
+
+    # clear arrow from canvas
+    def clear(self):
+        self.owner.canvas.delete(self.line_ref)
+
+    # draw arrow on canvas
+    def draw(self):
+        line_fill = "red" if self.selected else "magenta"
+        self.line_ref = self.owner.canvas.create_arc(self.origin[0] - 20, self.origin[1] - 20, self.origin[0] + 20, self.origin[1] + 20,
+                                     outline=line_fill, start=self.start_angle, extent=self.extent, width=5, style=tk.ARC)
+        
+        # rebind click handler
+        self.owner.canvas.tag_bind(self.line_ref, "<Button-1>", self.click_handler)
     
     # get string for exporting to script
     def to_string(self):
+        # if movement is relative, then turn angle is only extent
+        if self.options["flags"]["arms::RELATIVE"]:
+            angle = self.extent
+        else:
+            angle = self.start_angle + self.extent
+
         joined_flags = " | ".join([f for f in self.options["flags"] if self.options["flags"][f]])
-        return f'chassis::move({{{c.convert_x(self.end[0])} , {c.convert_y(self.end[1])}}}, {self.options["speed"]}{", " + joined_flags if len(joined_flags) > 0 else ""});\n'
+        return f'chassis::turn({round(angle, 2)}, {self.options["speed"]}{", " + joined_flags if len(joined_flags) > 0 else ""});\n'
 
 # SidebarGroup class encapsulates sidebar widget groups
 class SidebarGroup:
@@ -123,15 +212,15 @@ class SidebarGroup:
             self.relative_flag.set(True)
             self.relative_checkbox.select()
 
-        # create backwards flag variable and checkbutton
-        self.backwards_flag = tk.BooleanVar()
-        self.backwards_checkbox = tk.Checkbutton(self.frame, text="BACKWARDS", variable=self.backwards_flag, onvalue=True, offvalue=False, command=self.set_flags)
-        self.backwards_checkbox.grid(row=1, column=2, columnspan=1)
+        # create reverse flag variable and checkbutton
+        self.reverse_flag = tk.BooleanVar()
+        self.reverse_checkbox = tk.Checkbutton(self.frame, text="REVERSE", variable=self.reverse_flag, onvalue=True, offvalue=False, command=self.set_flags)
+        self.reverse_checkbox.grid(row=1, column=2, columnspan=1)
 
-        # if imported movement has backwards flag, set to true
-        if "arms::BACKWARDS" in flags:
-            self.backwards_flag.set(True)
-            self.backwards_checkbox.select()
+        # if imported movement has reverse flag, set to true
+        if "arms::REVERSE" in flags:
+            self.reverse_flag.set(True)
+            self.reverse_checkbox.select()
 
         # create thru flag variable and checkbutton
         self.thru_flag = tk.BooleanVar()
@@ -168,7 +257,7 @@ class SidebarGroup:
     def set_flags(self):
         self.movement.options["flags"]["arms::ASYNC"] = self.async_flag.get()
         self.movement.options["flags"]["arms::RELATIVE"] = self.relative_flag.get()
-        self.movement.options["flags"]["arms::BACKWARDS"] = self.backwards_flag.get()
+        self.movement.options["flags"]["arms::REVERSE"] = self.reverse_flag.get()
         self.movement.options["flags"]["arms::THRU"] = self.thru_flag.get()
     
     # select sidebar and movement
@@ -220,10 +309,10 @@ class SidebarGroup:
             self.relative_checkbox.configure(fg=DARK_MODE_FG)
             self.relative_checkbox.configure(selectcolor=DARK_MODE_BG)
             self.relative_checkbox.configure(activebackground=DARK_MODE_BG)
-            self.backwards_checkbox.configure(bg=DARK_MODE_BG)
-            self.backwards_checkbox.configure(fg=DARK_MODE_FG)
-            self.backwards_checkbox.configure(selectcolor=DARK_MODE_BG)
-            self.backwards_checkbox.configure(activebackground=DARK_MODE_BG)
+            self.reverse_checkbox.configure(bg=DARK_MODE_BG)
+            self.reverse_checkbox.configure(fg=DARK_MODE_FG)
+            self.reverse_checkbox.configure(selectcolor=DARK_MODE_BG)
+            self.reverse_checkbox.configure(activebackground=DARK_MODE_BG)
             self.thru_checkbox.configure(bg=DARK_MODE_BG)
             self.thru_checkbox.configure(fg=DARK_MODE_FG)
             self.thru_checkbox.configure(selectcolor=DARK_MODE_BG)
@@ -244,10 +333,10 @@ class SidebarGroup:
             self.relative_checkbox.configure(fg=LIGHT_MODE_FG)
             self.relative_checkbox.configure(selectcolor=LIGHT_MODE_BG)
             self.relative_checkbox.configure(activebackground=LIGHT_MODE_BG)
-            self.backwards_checkbox.configure(bg=LIGHT_MODE_BG)
-            self.backwards_checkbox.configure(fg=LIGHT_MODE_FG)
-            self.backwards_checkbox.configure(selectcolor=LIGHT_MODE_BG)
-            self.backwards_checkbox.configure(activebackground=LIGHT_MODE_BG)
+            self.reverse_checkbox.configure(bg=LIGHT_MODE_BG)
+            self.reverse_checkbox.configure(fg=LIGHT_MODE_FG)
+            self.reverse_checkbox.configure(selectcolor=LIGHT_MODE_BG)
+            self.reverse_checkbox.configure(activebackground=LIGHT_MODE_BG)
             self.thru_checkbox.configure(bg=LIGHT_MODE_BG)
             self.thru_checkbox.configure(fg=LIGHT_MODE_FG)
             self.thru_checkbox.configure(selectcolor=LIGHT_MODE_BG)

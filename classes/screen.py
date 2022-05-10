@@ -1,21 +1,26 @@
 # import statements
-from classes.movement import Movement, SidebarGroup
+from classes.movement import Linear, SidebarGroup, Angular
 from classes.converter import Converter as c
 from classes.constants import *
 import tkinter as tk
 from tkinter import ttk
+import re
 import sys
 import os
-from math import fmod
+from math import fmod, atan2, pi
 
 # Window class encapsulates main logic
 class Window:
 
     def __init__(self, root, canvas):
         # initialize variables
+        self.mode = "movement"
         self.creating_movement = False
         self.start_point = (0, 0)
         self.end_point = (0, 0)
+        self.origin = (0, 0)
+        self.start_angle = 0
+        self.extent = 0
         self.editing_movement = 0
         self.editing_index = -1
         self.root = root
@@ -25,6 +30,7 @@ class Window:
         self.next_temp_line = None
         self.movements = []
         self.sidebar_groups = []
+        self.filename = tk.StringVar()
 
         # create scrollable canvas for sidebar
         self.sidebar_canvas = tk.Canvas(root, width=SIDEBAR_WIDTH, height=SCREEN_HEIGHT)
@@ -49,8 +55,8 @@ class Window:
         file = tk.Menu(self.root, tearoff=False)
 
         # add import, export, clear
-        file.add_command(label = "Import", command=self.import_script)
-        file.add_command(label = "Export", command=self.export_script)
+        file.add_command(label = "Import", command=self.choose_import_script)
+        file.add_command(label = "Export", command=self.export_script_name)
         file.add_command(label = "Clear", command= self.clear)
 
         # attach file submenu to main menu bar
@@ -84,8 +90,10 @@ class Window:
 
         # bind keyboard input to key_handler callback
         self.root.bind("<Key>", self.key_handler)
-        # bind mouse button input to click_handler callback
-        self.canvas.bind("<Button>", self.click_handler)
+        # bind mouse left button input to click handler callback
+        self.canvas.bind("<Button-1>", self.left_click_handler)
+        # bind mouse right button input to click handler callback
+        self.canvas.bind("<Button-3>", self.right_click_handler)
         # bind mouse motion input to motion_handler callback
         self.canvas.bind("<Motion>", self.motion_handler)
 
@@ -124,8 +132,9 @@ class Window:
         top = tk.Toplevel(self.root)
         top.title("Help")
         tk.Label(top, text="Help", font=("Arial 12 bold")).pack(side=tk.TOP)
-        tk.Label(top, text="Click once to begin a movement, click again to end it.").pack(side=tk.TOP)
-        tk.Label(top, text="Click on a movement's name in the sidebar to select it. Selected movements\ncan be moved by clicking on the arrow to adjust the start or end points.").pack(side=tk.TOP)
+        tk.Label(top, text="Left click once to begin a movement, left click again to end it.").pack(side=tk.TOP)
+        tk.Label(top, text="Right click to switch between linear motion and turning.").pack(side=tk.TOP)
+        tk.Label(top, text="Left click on a movement's name in the sidebar to select it. Selected movements\ncan be moved by clicking on the arrow to adjust the start or end points.").pack(side=tk.TOP)
         tk.Label(top, text="Selecting a movement also provides a delete button for the movement.").pack(side=tk.TOP)
         tk.Label(top, text="[Esc]: Cancel a movement").pack(side=tk.TOP)
         tk.Label(top, text="[E]: Export script").pack(side=tk.TOP)
@@ -153,13 +162,13 @@ class Window:
             self.end_point = (0, 0)
         # if e is hit, export
         elif event.keysym == "e":
-            self.export_script()
+            self.export_script_name()
         # if i is hit, import
         elif event.keysym == "i":
-            self.import_script()
+            self.choose_import_script()
 
-    # mouse click input handler
-    def click_handler(self, event):
+    # mouse left click input handler
+    def left_click_handler(self, event):
         # if mouse click is on field
         if event.x < SCREEN_HEIGHT:
 
@@ -171,25 +180,19 @@ class Window:
             if self.grid.get():
                 # find grid square size in pizels
                 g = SCREEN_HEIGHT / 6 / 24 * GRID_SIZE
-                print("g", g)
 
                 # find position in interval and round to nearest grid point
                 x_mod = fmod(x, g)
-                print("x_mod", x_mod)
                 if x_mod >= g / 2:
                     x = x - x_mod + g
                 else:
                     x = x - x_mod
-                print("x", x)
 
                 y_mod = fmod(y, g)
-                print("y_mod", y_mod)
                 if y_mod >= g / 2:
                     y = y - y_mod + g
                 else:
                     y = y - y_mod
-                print("y", y)
-
             try:
                 self.canvas.delete(self.next_temp_line)
                 self.canvas.delete(self.prev_temp_line)
@@ -201,76 +204,110 @@ class Window:
                 if self.editing_movement == 0:
                     # set creating movement to true and store starting point
                     self.creating_movement = True
+
                     #Link start of new movement to previous movement for one continuous path
                     if self.movements:
                         self.start_point = self.movements[len(self.movements)-1].end
+                        self.origin = self.movements[len(self.movements)-1].end
+
+                        prev = self.movements[len(self.movements) - 1]
+                        
+                        self.start_angle = atan2(prev.start[1] - prev.end[1], prev.end[0] - prev.start[0]) * 180 / pi
+                        if self.start_angle < 0:
+                            self.start_angle += 360
                     else:
                         self.start_point = (x, y)
-                    # if not first click
+                        self.origin = (x, y)
+                        self.start_angle = 90
+                    
+            # if not first click
             else:
                 # set creating movement to false and store end point
                 self.end_point = (x, y)
-
-                # create line between start and end point
-                line_ref = self.canvas.create_line(self.start_point, self.end_point, 
-                                     fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
 
                 # Keep incrementing based off previous movement's name
                 prev_movement_count = 0
                 if self.movements:
                     prev_movement_count = int(self.movements[len(self.movements)-1].name.split(" ")[1])
                 
-                m = Movement(self, len(self.movements), self.start_point, self.end_point, line_ref, name="Movement {}".format(prev_movement_count + 1))
+                if self.mode == "movement":
+                    # create line between start and end point
+                    line_ref = self.canvas.create_line(self.start_point, self.end_point, 
+                                     fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+
+                    m = Linear(self, len(self.movements), "Movement {}".format(prev_movement_count + 1), self.start_point, self.end_point, line_ref)
+                else:
+                    line_ref = self.canvas.create_arc(self.origin[0] - 20, self.origin[1] - 20, self.origin[0] + 20, self.origin[1] + 20,
+                                     outline="magenta", start=self.start_angle, extent=self.extent, width=5, style=tk.ARC)
+
+                    m = Angular(self, len(self.movements), "Movement {}".format(prev_movement_count + 1), self.origin, self.start_angle, self.extent, line_ref)
+
                 s = SidebarGroup(m, self, len(self.sidebar_groups))
 
                 self.movements.append(m)
                 self.sidebar_groups.append(s)
 
-                self.start_point = self.end_point
+                prev = self.movements[len(self.movements) - 1]        
+
+                if self.mode == "movement":
+                    self.start_point = self.end_point
+                    self.origin = self.end_point
+                    
+                    self.start_angle = atan2(prev.start[1] - prev.end[1], prev.end[0] - prev.start[0]) * 180 / pi
+                    if self.start_angle < 0:
+                        self.start_angle += 360
+                else:
+                    self.start_point = prev.origin
+                    self.origin = prev.origin
+                    self.mode = "movement"
             
             # if editing end point and on dummy click, decrement
             if self.editing_movement == 2:
                 self.editing_movement = 1
 
-                if self.editing_index < len(self.movements) - 1:
-                    self.next_temp_line = self.movements[self.editing_index + 1].line_ref
+                if self.mode == "movement":
+                    if self.editing_index < len(self.movements) - 1:
+                        self.next_temp_line = self.movements[self.editing_index + 1].line_ref
             # if editing end point and on actual click
             elif self.editing_movement == 1:
                 # delete temp line
                 self.canvas.delete(self.temp_line)
 
-                # create end point
-                self.end_point = (x, y)
-
-                # create line between start and end point
-                line_ref = self.canvas.create_line(self.start_point, self.end_point, 
-                                     fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
-                
-                # edit end position for selected movement
-                self.movements[self.editing_index].end = self.end_point
-                self.movements[self.editing_index].line_ref = line_ref
-
-                # rebind tag
-                self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index].click_handler)
-
-                # edit start posititon for next movement in chain
-                if self.editing_index + 1 < len(self.movements):
-                    self.movements[self.editing_index + 1].clear()
-                    self.movements[self.editing_index + 1].start = self.end_point
+                if self.mode == "movement":
+                    # create end point
+                    self.end_point = (x, y)
 
                     # create line between start and end point
-                    line_ref = self.canvas.create_line(self.end_point, self.movements[self.editing_index + 1].end, 
-                                     fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
-
-                    self.movements[self.editing_index + 1].line_ref = line_ref
+                    line_ref = self.canvas.create_line(self.start_point, self.end_point, 
+                                         fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+                
+                    # edit end position for selected movement
+                    self.movements[self.editing_index].end = self.end_point
+                    self.movements[self.editing_index].line_ref = line_ref
 
                     # rebind tag
-                    self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index + 1].click_handler)
+                    self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index].click_handler)
+
+                    # edit start posititon for next movement in chain
+                    if self.editing_index + 1 < len(self.movements):
+                        self.movements[self.editing_index + 1].clear()
+                        self.movements[self.editing_index + 1].start = self.end_point
+
+                        # create line between start and end point
+                        line_ref = self.canvas.create_line(self.end_point, self.movements[self.editing_index + 1].end, 
+                                         fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+
+                        self.movements[self.editing_index + 1].line_ref = line_ref
+
+                        # rebind tag
+                        self.canvas.tag_bind(line_ref, "<Button-1>", self.movements[self.editing_index + 1].click_handler)
 
 
-                # reset editing values
-                self.editing_movement = 0
-                self.editing_index = -1
+                    # reset editing values
+                    self.editing_movement = 0
+                    self.editing_index = -1
+                else:
+                    pass
             
             # if editing start point and on dummy click, decrement
             if self.editing_movement == -2:
@@ -313,9 +350,14 @@ class Window:
                 # reset editing values
                 self.editing_movement = 0
                 self.editing_index = -1
-        # if mouse click is not on field
-        else:
-            print("Outside field")
+    
+    # mouse right click input handler
+    def right_click_handler(self, event):
+        if self.editing_movement == 0:
+            if self.mode == "movement":
+                self.mode = "turning"
+            elif self.mode == "turning":
+                self.mode = "movement"
 
     # mouse motion input handler
     def motion_handler(self, event):
@@ -365,17 +407,58 @@ class Window:
             # delete the current temp line
             self.canvas.delete(self.temp_line)
 
-            # create a new temp line between start point and current mouse position
-            self.temp_line = self.canvas.create_line(self.start_point, (event.x, event.y), 
+            if self.mode == "movement":
+                # create a new temp line between start point and current mouse position
+                self.temp_line = self.canvas.create_line(self.start_point, (event.x, event.y), 
                                                fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+            elif self.mode == "turning":
+                self.extent = atan2(self.origin[1] - event.y, event.x - self.origin[0]) * 180 / pi
+                self.extent -= self.start_angle
+                if self.extent > 180:
+                    self.extent -= 360
+                if self.extent < -180:
+                    self.extent += 360
 
+                self.temp_line = self.canvas.create_arc(self.origin[0] - 20, self.origin[1] - 20, self.origin[0] + 20, self.origin[1] + 20,
+                                     outline="magenta", start=self.start_angle, extent=self.extent, width=5, style=tk.ARC)
+
+
+    def export_script_name(self):
+        top = tk.Toplevel(self.root)
+        top.title("Export")
+        label = tk.Label(top, text="Export As...")
+        
+        # TextBox Creation
+        inputtxt = tk.Entry(top, textvariable=self.filename)
+  
+        label.grid(row=0, column=0)
+        inputtxt.grid(row=0, column=1)
+  
+        # Button Creation
+        printButton = tk.Button(top,
+                        text = "Print", 
+                        command = lambda: self.export_script(self.filename.get()))
+        printButton.grid(row=1, column=0, columnspan=2)
+  
     # Export path as cpp script
-    def export_script(self):
+    def export_script(self, file_name):
         if not os.path.exists("output"):
             os.mkdir("output")
-        f = open("output/script.cpp", "w")
+        if not file_name.endswith(".cpp"):
+            file_name += ".cpp"
+
+        try:
+            f = open(os.path.join("output", file_name), "w")
+        except PermissionError:
+            # pop up modal to alert user that script was exported
+            top = tk.Toplevel(self.root)
+            top.title("Export")
+            tk.Label(top, text= "Failed to export script", font=('Arial 18 bold')).pack(side=tk.TOP)
+            tk.Label(top, text= "Ensure filepath is valid", font=('Arial 18 bold')).pack(side=tk.TOP)
+            return
+
         if(len(self.movements) > 0):
-            f.write("// Reset odom\n")
+            f.write("//Scope in ARMS\nusing namespace arms;\n\n// Reset odom\n")
             f.write(
                 f'odom::reset({{{c.convert_x(self.movements[0].start[0])}, {c.convert_y(self.movements[0].start[1])}}});\n')
             f.write("\n")
@@ -385,10 +468,20 @@ class Window:
             f.write("\n")
         f.close()
 
+        # copy exported script to clipboard
+        f = open(os.path.join("output", file_name), "r")
+        lines = f.readlines()
+        self.root.clipboard_clear()
+        for l in lines:
+            self.root.clipboard_append(l)
+        f.close()
+
         # pop up modal to alert user that script was exported
         top = tk.Toplevel(self.root)
         top.title("Export")
         tk.Label(top, text= "Exported script", font=('Arial 18 bold')).pack(side=tk.TOP)
+        tk.Label(top, text= "Copied to clipboard", font=('Arial 18 bold')).pack(side=tk.TOP)
+
     
     # clear the field
     def clear(self):
@@ -411,20 +504,46 @@ class Window:
         # set dark mode
         self.set_darkmode()
 
-    def import_script(self):
+    def choose_import_script(self):
+        onlyfiles = [f for f in os.listdir(os.path.normpath("output")) if os.path.isfile(os.path.join("output", f))]
+        if len(onlyfiles) == 0:
+            top = tk.Toplevel(self.root)
+            top.title("Export")
+            tk.Label(top, text= "No scripts in output folder", font=('Arial 18 bold')).pack(side=tk.TOP)
+            tk.Label(top, text= "Place script in output folder to import", font=('Arial 18 bold')).pack(side=tk.TOP)
+            return
+        elif len(onlyfiles) == 1:
+            self.import_script(onlyfiles[0])
+            return
+        top = tk.Toplevel(self.root)
+
+        # create a listbox to display all the files in the output folder
+        listbox = tk.Listbox(top, selectmode=tk.SINGLE)
+        listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        for f in onlyfiles:
+            listbox.insert(tk.END, f)
+
+        # create a button to import the selected file
+        btn = tk.Button(top, text="Import", command=lambda: self.import_script(listbox.get(tk.ACTIVE)))
+        btn.pack(side=tk.RIGHT)
+
+    def import_script(self, file="script.cpp"):
         self.clear()
 
         # Check if the script.cpp file exists
-        if not os.path.isfile(os.path.join("output","script.cpp")):
+        if not os.path.isfile(os.path.join("output",file)):
             try:
                 os.mkdir("output")
             except:
                 pass
-            print("Please put script.cpp into the output directory")
-            sys.exit()
+            top = tk.Toplevel(self.root)
+            top.title("Export")
+            tk.Label(top, text= "File does not exist", font=('Arial 18 bold')).pack(side=tk.TOP)
+            tk.Label(top, text= "in output folder", font=('Arial 18 bold')).pack(side=tk.TOP)
+            return
 
         # Open the script
-        f = open("output/script.cpp","r")
+        f = open(os.path.join("output", file),"r")
 
         start = None # Starting point based on odom::reset
         allLines = f.readlines() # Read the script
@@ -448,7 +567,7 @@ class Window:
                 data = "".join(l[l.index("(") : l.index(")")].split())
 
                 # Get endpoint data of odom movement
-                pos = data[data.index("{")+1 : data.index("}")].split(",")
+                pos = data[data.index("{")+2 : data.index("}")].split(",")
 
                 # Remove endpoint part from 'data'
                 data = data[data.index("},")+2:]
@@ -483,7 +602,7 @@ class Window:
                 line_ref = self.canvas.create_line(start[0], start[1], endpoint[0], endpoint[1], 
                                      fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
                 
-                themove = Movement(self, len(self.movements), start, self.end_point, line_ref, name = "Movement " + str(len(self.movements)+1))
+                themove = Linear(self, len(self.movements), "Movement " + str(len(self.movements)+1), start, endpoint, line_ref)
                 s = SidebarGroup(themove, self, len(self.sidebar_groups), speed=speed, flags=data)
 
                 # Set the movements speed to the parsed speed
@@ -502,12 +621,15 @@ class Window:
 
                 # Reset start to endpoint to chain movements
                 start = endpoint
+        
+        self.sidebar_selection_index = -1
 
     def remove_movement(self, movement):
         ind = movement.index
         if ind > 0 and ind < len(self.movements)-1:
             self.movements[ind+1].clear()
-            self.movements[ind+1].start = self.movements[ind].start
+            if type(self.movements[ind]) is Linear:
+                self.movements[ind+1].start = self.movements[ind].start
         self.movements[ind].clear()
         self.movements.pop(ind)
 
@@ -524,3 +646,5 @@ class Window:
 
         for n in range(len(self.sidebar_groups)):
             self.sidebar_groups[n].index = n
+        
+        self.sidebar_selection_index = -1
