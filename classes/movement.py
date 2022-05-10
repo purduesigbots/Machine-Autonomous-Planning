@@ -157,6 +157,7 @@ class Angular(Movement):
     
     # get string for exporting to script
     def to_string(self):
+        # if movement is relative, then turn angle is only extent
         if self.options["flags"]["arms::RELATIVE"]:
             angle = self.extent
         else:
