@@ -4,6 +4,7 @@ from classes.converter import Converter as c
 from classes.constants import *
 import tkinter as tk
 from tkinter import ttk
+import re
 import sys
 import os
 from math import fmod
@@ -25,6 +26,7 @@ class Window:
         self.next_temp_line = None
         self.movements = []
         self.sidebar_groups = []
+        self.filename = tk.StringVar()
 
         # create scrollable canvas for sidebar
         self.sidebar_canvas = tk.Canvas(root, width=SIDEBAR_WIDTH, height=SCREEN_HEIGHT)
@@ -49,8 +51,8 @@ class Window:
         file = tk.Menu(self.root, tearoff=False)
 
         # add import, export, clear
-        file.add_command(label = "Import", command=self.import_script)
-        file.add_command(label = "Export", command=self.export_script)
+        file.add_command(label = "Import", command=self.choose_import_script)
+        file.add_command(label = "Export", command=self.export_script_name)
         file.add_command(label = "Clear", command= self.clear)
 
         # attach file submenu to main menu bar
@@ -153,7 +155,7 @@ class Window:
             self.end_point = (0, 0)
         # if e is hit, export
         elif event.keysym == "e":
-            self.export_script()
+            self.export_script_name()
         # if i is hit, import
         elif event.keysym == "i":
             self.import_script()
@@ -369,11 +371,40 @@ class Window:
             self.temp_line = self.canvas.create_line(self.start_point, (event.x, event.y), 
                                                fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
 
+    def export_script_name(self):
+        top = tk.Toplevel(self.root)
+        top.title("Export")
+        label = tk.Label(top, text="Export As...")
+        
+        # TextBox Creation
+        inputtxt = tk.Entry(top, textvariable=self.filename)
+  
+        label.grid(row=0, column=0)
+        inputtxt.grid(row=0, column=1)
+  
+        # Button Creation
+        printButton = tk.Button(top,
+                        text = "Print", 
+                        command = lambda: self.export_script(self.filename.get()))
+        printButton.grid(row=1, column=0, columnspan=2)
+  
     # Export path as cpp script
-    def export_script(self):
+    def export_script(self, file_name):
         if not os.path.exists("output"):
             os.mkdir("output")
-        f = open("output/script.cpp", "w")
+        if not file_name.endswith(".cpp"):
+            file_name += ".cpp"
+
+        try:
+            f = open(os.path.join("output", file_name), "w")
+        except PermissionError:
+            # pop up modal to alert user that script was exported
+            top = tk.Toplevel(self.root)
+            top.title("Export")
+            tk.Label(top, text= "Failed to export script", font=('Arial 18 bold')).pack(side=tk.TOP)
+            tk.Label(top, text= "Ensure filepath is valid", font=('Arial 18 bold')).pack(side=tk.TOP)
+            return
+
         if(len(self.movements) > 0):
             f.write("// Reset odom\n")
             f.write(
@@ -411,20 +442,46 @@ class Window:
         # set dark mode
         self.set_darkmode()
 
-    def import_script(self):
+    def choose_import_script(self):
+        onlyfiles = [f for f in os.listdir(os.path.normpath("output")) if os.path.isfile(os.path.join("output", f))]
+        if len(onlyfiles) == 0:
+            top = tk.Toplevel(self.root)
+            top.title("Import")
+            tk.Label(top, text= "No scripts in output folder", font=('Arial 18 bold')).pack(side=tk.TOP)
+            tk.Label(top, text= "Place script in output folder to import", font=('Arial 18 bold')).pack(side=tk.TOP)
+            return
+        elif len(onlyfiles) == 1:
+            self.import_script(onlyfiles[0])
+            return
+        top = tk.Toplevel(self.root)
+
+        # create a listbox to display all the files in the output folder
+        listbox = tk.Listbox(top, selectmode=tk.SINGLE)
+        listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        for f in onlyfiles:
+            listbox.insert(tk.END, f)
+
+        # create a button to import the selected file
+        btn = tk.Button(top, text="Import", command=lambda: self.import_script(listbox.get(tk.ACTIVE)))
+        btn.pack(side=tk.RIGHT)
+
+    def import_script(self, file="script.cpp"):
         self.clear()
 
         # Check if the script.cpp file exists
-        if not os.path.isfile(os.path.join("output","script.cpp")):
+        if not os.path.isfile(os.path.join("output",file)):
             try:
                 os.mkdir("output")
             except:
                 pass
-            print("Please put script.cpp into the output directory")
-            sys.exit()
+            top = tk.Toplevel(self.root)
+            top.title("Import")
+            tk.Label(top, text= "File does not exist", font=('Arial 18 bold')).pack(side=tk.TOP)
+            tk.Label(top, text= "in output folder", font=('Arial 18 bold')).pack(side=tk.TOP)
+            return
 
         # Open the script
-        f = open("output/script.cpp","r")
+        f = open(os.path.join("output", file),"r")
 
         start = None # Starting point based on odom::reset
         allLines = f.readlines() # Read the script
