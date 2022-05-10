@@ -445,8 +445,11 @@ class Window:
     def choose_import_script(self):
         onlyfiles = [f for f in os.listdir(os.path.normpath("output")) if os.path.isfile(os.path.join("output", f))]
         if len(onlyfiles) == 0:
-            print("Error Importing: There is no script in the output folder")
-            sys.exit()
+            top = tk.Toplevel(self.root)
+            top.title("Import")
+            tk.Label(top, text= "No scripts in output folder", font=('Arial 18 bold')).pack(side=tk.TOP)
+            tk.Label(top, text= "Place script in output folder to import", font=('Arial 18 bold')).pack(side=tk.TOP)
+            return
         elif len(onlyfiles) == 1:
             self.import_script(onlyfiles[0])
             return
@@ -471,8 +474,11 @@ class Window:
                 os.mkdir("output")
             except:
                 pass
-            print("Please put script.cpp into the output directory")
-            sys.exit()
+            top = tk.Toplevel(self.root)
+            top.title("Import")
+            tk.Label(top, text= "File does not exist", font=('Arial 18 bold')).pack(side=tk.TOP)
+            tk.Label(top, text= "in output folder", font=('Arial 18 bold')).pack(side=tk.TOP)
+            return
 
         # Open the script
         f = open(os.path.join("output", file),"r")
