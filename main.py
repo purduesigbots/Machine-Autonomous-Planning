@@ -20,7 +20,7 @@ field = ImageTk.PhotoImage(img)
 can = tk.Canvas(root, width=SCREEN_HEIGHT,
     height=SCREEN_HEIGHT)
 can.place(anchor=tk.NW, x=0, y=0)
-can.create_image(0, 0, anchor=tk.NW, image=field)
+can.create_image(0, 0, anchor=tk.NW, image=field, tags=("field"))
 
 Window(root, can)
 

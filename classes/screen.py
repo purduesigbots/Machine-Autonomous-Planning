@@ -3,10 +3,12 @@ from classes.movement import Movement, SidebarGroup
 from classes.converter import Converter as c
 from classes.constants import *
 import tkinter as tk
-from tkinter import ttk
+from tkinter import image_types, ttk
 import sys
 import os
 from math import fmod
+from PIL import Image, ImageTk
+from classes.constants import SCREEN_HEIGHT, SCREEN_WIDTH
 
 # Window class encapsulates main logic
 class Window:
@@ -70,6 +72,9 @@ class Window:
         settings.add_checkbutton(label="Snap to Grid", onvalue=True, offvalue=False, variable=self.grid, command=self.set_grid)
         self.gridlines = []
 
+        # add button to rotate the field image
+        settings.add_command(label = "Rotate", command=self.rotate_field)
+
         # attach settings submenu to main menu
         mainmenu.add_cascade(label = "Settings", menu=settings)
 
@@ -130,6 +135,7 @@ class Window:
         tk.Label(top, text="[Esc]: Cancel a movement").pack(side=tk.TOP)
         tk.Label(top, text="[E]: Export script").pack(side=tk.TOP)
         tk.Label(top, text="[I]: Import script").pack(side=tk.TOP)
+        tk.Label(top, text="[R]: Rotate Field").pack(side=tk.TOP)
 
     # switch which sidebar group is selected
     def switch_selection(self, new_index):
@@ -157,6 +163,9 @@ class Window:
         # if i is hit, import
         elif event.keysym == "i":
             self.import_script()
+        # if r is hit, rotate
+        elif event.keysym == "r":
+            self.rotate_field()
 
     # mouse click input handler
     def click_handler(self, event):
@@ -213,7 +222,7 @@ class Window:
 
                 # create line between start and end point
                 line_ref = self.canvas.create_line(self.start_point, self.end_point, 
-                                     fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+                                     fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8), tags=("line"))
 
                 # Keep incrementing based off previous movement's name
                 prev_movement_count = 0
@@ -244,7 +253,7 @@ class Window:
 
                 # create line between start and end point
                 line_ref = self.canvas.create_line(self.start_point, self.end_point, 
-                                     fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+                                     fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8), tags=("line"))
                 
                 # edit end position for selected movement
                 self.movements[self.editing_index].end = self.end_point
@@ -260,7 +269,7 @@ class Window:
 
                     # create line between start and end point
                     line_ref = self.canvas.create_line(self.end_point, self.movements[self.editing_index + 1].end, 
-                                     fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+                                     fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8), tags=("line"))
 
                     self.movements[self.editing_index + 1].line_ref = line_ref
 
@@ -303,7 +312,7 @@ class Window:
 
                     # create line between start and end point
                     line_ref = self.canvas.create_line(self.movements[self.editing_index - 1].start, self.start_point, 
-                                     fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+                                     fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8), tags=("line"))
 
                     self.movements[self.editing_index - 1].line_ref = line_ref
 
@@ -353,12 +362,12 @@ class Window:
 
                 # create a new temp line between end point and current mouse position
                 self.temp_line = self.canvas.create_line((event.x, event.y), self.end_point,
-                                               fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+                                               fill="green", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8), tags=("line"))
 
                 # create a new prev temp line
                 if self.editing_index > 0:
                     self.prev_temp_line = self.canvas.create_line(self.movements[self.editing_index - 1].start, (event.x, event.y),
-                                               fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+                                               fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8), tags=("line"))
         
         # if currently drawing a line
         if self.creating_movement:
@@ -367,7 +376,7 @@ class Window:
 
             # create a new temp line between start point and current mouse position
             self.temp_line = self.canvas.create_line(self.start_point, (event.x, event.y), 
-                                               fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+                                               fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8), tags=("line"))
 
     # Export path as cpp script
     def export_script(self):
@@ -481,7 +490,7 @@ class Window:
                 - previous movement
                 '''
                 line_ref = self.canvas.create_line(start[0], start[1], endpoint[0], endpoint[1], 
-                                     fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8))
+                                     fill="lime", width=5, arrow=tk.LAST, arrowshape=(8, 10, 8), tags=("line"))
                 
                 themove = Movement(self, len(self.movements), start, self.end_point, line_ref, name = "Movement " + str(len(self.movements)+1))
                 s = SidebarGroup(themove, self, len(self.sidebar_groups), speed=speed, flags=data)
@@ -524,3 +533,30 @@ class Window:
 
         for n in range(len(self.sidebar_groups)):
             self.sidebar_groups[n].index = n
+
+    def rotate_field(self):
+        # if there are no lines yet (prevents rotating field with points already)
+        # create field image from assets and resize and rewrite field image
+        img = Image.open(r'./assets/field.png')
+        img = img.resize((SCREEN_HEIGHT, SCREEN_HEIGHT))
+        img = img.rotate(angle=90)
+        img.save(r'./assets/field.png')
+        field = ImageTk.PhotoImage(img)
+
+        # display new image
+        self.canvas.itemconfig('field', image=field)
+        self.canvas.imgref = field
+        self.canvas.delete("line")
+        for i in range(len(self.movements)):
+            start_tup = list(self.movements[i].start)
+            temp_start = -start_tup[0]+600
+            start_tup = [start_tup[1], temp_start]
+            self.movements[i].start = tuple(start_tup)
+            end_tup = list(self.movements[i].end)
+            temp_end = -end_tup[0]+600
+            end_tup = [end_tup[1], temp_end]
+            self.movements[i].end = tuple(end_tup)
+        for i in range(len(self.movements)):
+            self.canvas.create_line(self.movements[i].start[0], self.movements[i].start[1], 
+                                     self.movements[i].end[0], self.movements[i].end[1], fill="lime",
+                                     width=5, arrow=tk.LAST, arrowshape=(8, 10, 8), tags=("line"))
